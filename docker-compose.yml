@@ -1,0 +1,120 @@
+version: '3.9'
+
+services:
+
+  web:
+    image: nginx
+    container_name: store_nginx
+   
+    volumes:
+      - ./var/log/nginx:/var/log/nginx #log файлы.
+      # - ./var/nginx.conf:/etc/nginx/nginx.conf
+
+    ports:
+      - 8080:80
+      - 443:443
+    environment:
+      - NGINX_HOST=onlinestore.com
+      - NGINX_PORT=80
+    depends_on: 
+      - auth_service
+      - notifications_service
+
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      - ZOOKEEPER_CLIENT_PORT=2181
+    
+    hostname: zookeeper
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+
+
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9093:9093"
+    
+    environment:
+      - KAFKA_BROKER_ID:1
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR:1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR:1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR:1
+      - KAFKA_ZOOKEEPER_CONNECT=zookeeper:2181
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://:9092
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    
+    depends_on: 
+      - kafka
+    ports:
+      - "7777:8080"
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=kafka
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+
+  postgres:
+    image: postgres:latest
+    container_name: store_db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: alex0000
+      POSTGRES_DB: store_db
+      PGDATA: /var/lib/postgresql/data/pgdata
+  
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./var/pgdata:/var/lib/postgresql/data/pgdataç
+
+  minio:
+    image: minio/minio:latest
+    container_name: store_minio
+
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: root
+      MINIO_ROOT_PASSWORD: alex0000
+      ENDPOINT: minio
+      USE_SSL: false
+    volumes:
+      - ./var/storage-minio:/data
+    command: server --address ":9001" --console-address ":9000" /data
+    restart: always
+ 
+  
+  auth_service:
+    build: auth_service
+    container_name: auth_service
+    restart: unless-stopped
+    depends_on: 
+      - postgres
+      - minio
+
+    ports:
+      - "8081:8081"
+
+  notifications_service:
+    build: notifications_service
+    container_name: notifications_service
+    restart: unless-stopped
+    depends_on: 
+      - postgres
+     
+    ports:
+      - "8082:8082"
+    
