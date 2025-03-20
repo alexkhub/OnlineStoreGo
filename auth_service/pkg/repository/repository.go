@@ -16,11 +16,14 @@ type Authorization interface {
 	RegistrationPostrgres(user authservice.AuthRegistrationSerializer) (int, string, error)
 	ActivateUserPostgres(id int) (error)
 	LoginPostgres(param, value string)(authservice.LoginPostgresData, error)
-	CreateJwtRefreshPostgres(user_id, refresh string)(error)
+	CreateJwtRefreshPostgres(user_id int, refresh string)(error)
+	RefreshCheckUserPostgres(user_id int)(authservice.RefreshCheckUser, error)
+	UpdateJwtRefreshPostres(user_id int , refresh, new_refresh string)(error)
+
 }
 
 type Profile interface {
-
+	UserProfilePostgres(user_id int) (authservice.ProfileSerializer, error)
 }
 
 type Repository struct{

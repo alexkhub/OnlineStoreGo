@@ -56,7 +56,7 @@ func (s *AuthService) LoginUser(user authservice.LoginUser) (authservice.JWTToke
 		param = "email"
 		value = user.Email
 	}else{
-		return authservice.JWTToken{}, errors.New("Username and email is empty")
+		return authservice.JWTToken{}, errors.New("username and email is empty")
 	}
 
 	data, err := s.repos.LoginPostgres(param, value)
@@ -65,11 +65,11 @@ func (s *AuthService) LoginUser(user authservice.LoginUser) (authservice.JWTToke
 	}
 
 	if !data.Activate || data.Block{
-		return authservice.JWTToken{}, errors.New("No access to account ")
+		return authservice.JWTToken{}, errors.New("no access to account ")
 	}
 
 	if !CheckPasswordHash(user.Password, data.Password){
-		return authservice.JWTToken{}, errors.New("Password error")
+		return authservice.JWTToken{}, errors.New("password error")
 	}
 
 	access, err := s.jwt_service.CreateJwtAccess(strconv.Itoa(data.Id), strconv.Itoa(data.Role))
@@ -82,10 +82,46 @@ func (s *AuthService) LoginUser(user authservice.LoginUser) (authservice.JWTToke
 		return authservice.JWTToken{}, errors.New("JWT error " + err.Error())
 	}
 
-	err = s.repos.CreateJwtRefreshPostgres(strconv.Itoa(data.Id), refresh)
+	err = s.repos.CreateJwtRefreshPostgres(data.Id, refresh)
 	if err != nil{
-		log.Printf("Refresh token not recorded in the DB = %s, error = %s", data.Id, err )
+		log.Printf("refresh token not recorded in the DB = %s, error = %s", data.Id, err )
 	}
 
 	return authservice.JWTToken{Access: access, Refresh: refresh}, nil
+}
+
+
+func (s *AuthService) RefreshJWTToken(refresh string) (authservice.JWTToken, error){
+
+	user_id, err := s.jwt_service.ParseRefreshToken(refresh)
+	if err != nil{
+		return authservice.JWTToken{}, errors.New("refresh error "+ err.Error())
+	}
+
+	data, err := s.repos.RefreshCheckUserPostgres(user_id)
+
+	if  err != nil{
+		return authservice.JWTToken{}, errors.New("refresh error "+ err.Error())
+	}
+
+	if !data.Activate || data.Block{
+		return authservice.JWTToken{}, errors.New("no access to account ")
+	}
+
+	new_access, err := s.jwt_service.CreateJwtAccess(strconv.Itoa(user_id), strconv.Itoa(data.Role))
+	if err != nil{
+		return authservice.JWTToken{}, errors.New("JWT error " + err.Error())	
+	}
+	
+	new_refresh, err := s.jwt_service.CreateJwtRefresh(strconv.Itoa(user_id))
+	if err != nil{
+		return authservice.JWTToken{}, errors.New("JWT error " + err.Error())
+	}
+
+	err = s.repos.UpdateJwtRefreshPostres(user_id, refresh, new_refresh)
+	if err != nil{
+		return authservice.JWTToken{}, err
+	}
+	
+	return authservice.JWTToken{Access: new_access, Refresh: new_refresh} , nil
 }

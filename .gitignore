@@ -1,4 +1,4 @@
 /var/
 /test_func/
-*.mod
 *.sum
+*.DS_STORE

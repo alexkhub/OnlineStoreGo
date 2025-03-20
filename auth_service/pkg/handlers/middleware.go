@@ -10,9 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-const(
-	signingKey = "fdljdcsdcsv232e3cdjif"
-)
 
 
 func (h *Handler) parseAuthHeader(c *gin.Context) {
@@ -34,22 +31,21 @@ func (h *Handler) parseAuthHeader(c *gin.Context) {
 		newErrorMessage(c, http.StatusForbidden, errors.New("token is empty").Error())
 		return 
 	}
-	// res, err := h.auth.Parse(headerParts[1])
+	res, err := h.auth.Parse(headerParts[1])
 
-	// if err != nil {
-	// 	newErrorMessage(c, http.StatusForbidden,  err.Error())
-	// 	return 
-	// }
-	// c.Set("user_id", res)
-	
+	if err != nil {
+		newErrorMessage(c, http.StatusForbidden,  err.Error())
+		return 
+	}
+	c.Set("user_id", res.Id)
+	c.Set("role", res.Role)
 	
 }
 
-func getUserId(c *gin.Context) (int, error){
+func GetUserId(c *gin.Context) (int, error){
 
 	id, ok := c.Get("user_id")
 	if !ok {
-
 		return 0, errors.New("user id not found")
 	}
 	

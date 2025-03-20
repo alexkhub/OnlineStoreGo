@@ -23,3 +23,9 @@ type LoginPostgresData struct{
 	Block bool `json:"block" db:"block"`
 
 }
+
+type RefreshCheckUser struct{
+	Role int `json:"role" db:"role_id"`
+	Activate bool `json:"activate" db:"activate"`
+	Block bool `json:"block" db:"block"`
+}

@@ -16,15 +16,18 @@ type Authorization interface{
 	Registration(user authservice.AuthRegistrationSerializer) (authservice.AuthRegistrationResponseSerializer, error)
 	ActivateUser(id int)(error)
 	LoginUser(user authservice.LoginUser) (authservice.JWTToken, error)
+	RefreshJWTToken(refresh string) (authservice.JWTToken, error)
 }
 
 type Profile interface{
-
+	UserProfile( user_id int) (authservice.ProfileSerializer, error)
 }
 
 type JWTManager interface{   
 	CreateJwtAccess(user_id, role_id string) (string, error)
 	CreateJwtRefresh(user_id string) (string, error)
+	Parse(accessToken string) (authservice.AuthMiddlewareSerializer, error)
+	ParseRefreshToken(refreshToken string) (int, error)
 }
 
 type Deps struct {

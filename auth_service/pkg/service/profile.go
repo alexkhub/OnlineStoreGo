@@ -1,6 +1,7 @@
 package service
 
-import(
+import (
+	authservice "auth_service"
 	"auth_service/pkg/repository"
 )
 
@@ -13,4 +14,9 @@ func NewProfileService(repos repository.Profile ) *ProfileService{
 	return &ProfileService{
 		repos:  repos,
 	}
+}
+
+func (s *ProfileService) UserProfile( user_id int) (authservice.ProfileSerializer, error){
+	
+	return s.repos.UserProfilePostgres(user_id)
 }

@@ -8,17 +8,17 @@ Insert into Roles (role_name) VALUES ('client'), ('seller'), ('carrier'), ('admi
 
 Create Table Users(
     id SERIAL primary key,
-    username varchar(150) ,
+    username varchar(150) UNIQUE,
     first_name varchar(30) NULL,
     last_name varchar(50) NULL,
-    email varchar(150) ,
+    email varchar(150) UNIQUE,
     hash_password varchar(150),
     activate BOOLEAN Default FALSE, 
     block BOOLEAN Default FALSE, 
     role_id int REFERENCES Roles(id) DEFAULT 1,
     datetime_create timestamptz  DEFAULT now(),
-    image varchar(30) NULL,
-    UNIQUE(email, username)
+    image varchar(30) NULL
+
 );
 
 create table Refresh(

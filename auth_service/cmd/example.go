@@ -45,13 +45,13 @@ func main() {
 
 	producer, err := sarama.NewSyncProducer([]string{"kafka:9092"}, nil)
 	if err != nil {
-		log.Fatalf("Failed to create producer: %v", err)
+		log.Fatalf("failed to create producer: %v", err)
 	}
 	defer producer.Close()
 
 	consumer, err := sarama.NewConsumer([]string{"kafka:9092"}, nil)
 	if err != nil {
-		log.Fatalf("Failed to create producer: %v", err)
+		log.Fatalf("failed to create producer: %v", err)
 	}
 	defer consumer.Close()
 
@@ -66,11 +66,11 @@ func main() {
 	})
 	partConsumer, err := consumer.ConsumePartition(service.ConfirmTopic, 0, sarama.OffsetNewest)
 	if err != nil {
-		log.Fatalf("Failed to consume partition: %v", err)
+		log.Fatalf("failed to consume partition: %v", err)
 	}
 	defer partConsumer.Close()
 
-	my_handlers := handlers.NewHandler(services)
+	my_handlers := handlers.NewHandler(services, jwt_manager)
 
 	go func() {
 		if err := my_handlers.InitRouter().Run(":8081"); err != nil {
@@ -84,7 +84,7 @@ func main() {
 			// (обработка входящего сообщения и отправка ответа в Kafka)
 			case msg, ok := <-partConsumer.Messages():
 				if !ok {
-					log.Println("Channel closed, exiting")
+					log.Println("channel closed, exiting")
 					return
 				}
 				var receivedMessage authservice.ConfirmUserSerializer
@@ -97,7 +97,7 @@ func main() {
 				 err= services.ActivateUser(receivedMessage.Id)
 
 				if err!= nil {
-					log.Printf("Activate user id=%s error: %s",receivedMessage.Id, err)
+					log.Printf("activate user id=%s error: %s",receivedMessage.Id, err)
 				}		
 				log.Printf("Received message: %+v\n", receivedMessage)
 			}

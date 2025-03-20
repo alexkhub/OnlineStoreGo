@@ -60,8 +60,30 @@ func (h *Handler) LoginHandler(c *gin.Context){
         newErrorMessage(c, http.StatusUnauthorized, err.Error())
         return
     }
-    c.JSON(http.StatusOK, token,
-    )
+    c.JSON(http.StatusOK, token)
     
 
+}
+
+func (h *Handler) RefreshJWTHandler(c *gin.Context){
+    var input authservice.RefreshToken
+
+    if err:= c.BindJSON(&input); err != nil{  
+        newErrorMessage(c, http.StatusBadRequest, err.Error())  
+        return 
+    }
+    _, err := v.ValidateStruct(input)
+    if err!= nil{
+        newErrorMessage(c, http.StatusBadRequest, err.Error())
+        return 
+    }
+
+    token, err :=  h.services.RefreshJWTToken(input.Refresh)
+    
+    if err != nil{
+        newErrorMessage(c, http.StatusUnauthorized, err.Error())
+        return
+    }
+    c.JSON(http.StatusOK, token)
+  
 }

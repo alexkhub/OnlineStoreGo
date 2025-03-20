@@ -45,7 +45,7 @@ func (r *AuthPostgres) LoginPostgres(param, value string)(authservice.LoginPostg
 	
 }
 
-func (r *AuthPostgres) CreateJwtRefreshPostgres(user_id, refresh string)(error){
+func (r *AuthPostgres) CreateJwtRefreshPostgres(user_id int , refresh string)(error){
 	var id int
 	query := fmt.Sprintf("Insert into %s (user_id, refresh_token) values ($1, $2) returning id;", RefreshTable)
 	row := r.db.QueryRow(query, user_id, refresh)
@@ -55,3 +55,43 @@ func (r *AuthPostgres) CreateJwtRefreshPostgres(user_id, refresh string)(error){
 	return  nil
 }
 
+func (r *AuthPostgres) RefreshCheckUserPostgres(user_id int)(authservice.RefreshCheckUser, error){
+	var data authservice.RefreshCheckUser
+	query := fmt.Sprintf("Select role_id, activate, block from %s where id = $1 limit 1;", UserTable)
+	err := r.db.Get(&data, query, user_id)
+	return data, err
+}
+
+func (r *AuthPostgres) UpdateJwtRefreshPostres(user_id int , refresh, new_refresh string)(error){
+	var id int
+	var refresh_id int
+	
+	query := fmt.Sprintf("select id from %s where user_id = $1 and refresh_token = $2; ", RefreshTable)
+	err := r.db.Get(&refresh_id, query, user_id, refresh)
+	if err != nil{
+		return err
+	}
+
+	tx, err := r.db.Begin()
+	if err != nil{
+		return err
+	}
+
+	query = fmt.Sprintf("delete from %s where user_id = $1 and refresh_token = $2; ", RefreshTable)
+	_, err = tx.Exec(query, user_id, refresh)
+	if err != nil{
+		tx.Rollback()
+		return err
+	}
+	query = fmt.Sprintf("Insert into %s (user_id, refresh_token) values ($1, $2) returning id;", RefreshTable)
+
+	row := tx.QueryRow(query, user_id, new_refresh)
+	if err:= row.Scan(&id); err != nil{
+		tx.Rollback()
+		return err
+	}
+	err = tx.Commit()
+	return  err
+
+	
+}

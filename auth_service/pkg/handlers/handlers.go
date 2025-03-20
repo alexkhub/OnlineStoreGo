@@ -9,11 +9,12 @@ import (
 
 type Handler struct{
     services *service.Service
+	auth service.JWTManager
 		
 }
 
-func NewHandler(services *service.Service) *Handler{
-	return &Handler{services: services}
+func NewHandler(services *service.Service, auth service.JWTManager) *Handler{
+	return &Handler{services: services, auth: auth}
 }
 
 
@@ -26,6 +27,11 @@ func (h *Handler) InitRouter() * gin.Engine{
 		{
 			auth.POST("/registration", h.RegistrationHandler)		
 			auth.POST("/login", h.LoginHandler)
+			auth.POST("/refresh", h.RefreshJWTHandler)
+		}
+		profile := api.Group("/profile", h.parseAuthHeader)
+		{
+			profile.GET("/", h.ProfileHandler)
 		}
 		
 	}
