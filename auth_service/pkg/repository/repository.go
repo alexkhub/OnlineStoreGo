@@ -4,6 +4,7 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"auth_service"
+	
 )
 
 const (
@@ -19,11 +20,14 @@ type Authorization interface {
 	CreateJwtRefreshPostgres(user_id int, refresh string)(error)
 	RefreshCheckUserPostgres(user_id int)(authservice.RefreshCheckUser, error)
 	UpdateJwtRefreshPostres(user_id int , refresh, new_refresh string)(error)
+	DeleteRefreshJWTTokenPostgres(refresh string)(error)
+	CloseAllSessionsPostgres(id int) (error)
 
 }
 
 type Profile interface {
 	UserProfilePostgres(user_id int) (authservice.ProfileSerializer, error)
+	UpdateProfileImage(user_id int, image_id string) (error)
 }
 
 type Repository struct{
@@ -33,7 +37,8 @@ type Repository struct{
 
 type ReposDebs struct{
 	DB *sqlx.DB
-    MinIO *minio.Client
+	MinIO  *minio.Client
+  
 }
 
 func NewRepository(debs ReposDebs) *Repository{

@@ -17,7 +17,7 @@ Create Table Users(
     block BOOLEAN Default FALSE, 
     role_id int REFERENCES Roles(id) DEFAULT 1,
     datetime_create timestamptz  DEFAULT now(),
-    image varchar(30) NULL
+    image varchar(250) NULL
 
 );
 

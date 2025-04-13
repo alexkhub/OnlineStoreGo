@@ -25,7 +25,9 @@ func NewAuthService(repos repository.Authorization, jwt_service JWTManager, prod
 }
 
 func (s *AuthService) Registration(user authservice.AuthRegistrationSerializer) (authservice.AuthRegistrationResponseSerializer,  error){
-	
+	if user.Password != user.RepeatPassword {
+		return authservice.AuthRegistrationResponseSerializer{}, errors.New("the password will not match")
+	}
 	user.Password, _ = HashPassword(user.Password)
 	id, email, err := s.repos.RegistrationPostrgres(user)
 	if err != nil{
@@ -84,7 +86,7 @@ func (s *AuthService) LoginUser(user authservice.LoginUser) (authservice.JWTToke
 
 	err = s.repos.CreateJwtRefreshPostgres(data.Id, refresh)
 	if err != nil{
-		log.Printf("refresh token not recorded in the DB = %s, error = %s", data.Id, err )
+		log.Printf("refresh token not recorded in the DB = %d, error = %s", data.Id, err )
 	}
 
 	return authservice.JWTToken{Access: access, Refresh: refresh}, nil
@@ -124,4 +126,12 @@ func (s *AuthService) RefreshJWTToken(refresh string) (authservice.JWTToken, err
 	}
 	
 	return authservice.JWTToken{Access: new_access, Refresh: new_refresh} , nil
+}
+
+func (s *AuthService) DeleteRefreshJWTToken(refresh string) (error){
+	return s.repos.DeleteRefreshJWTTokenPostgres(refresh)
+}
+
+func (s *AuthService) CloseAllSessions(id int) (error){
+	return s.repos.CloseAllSessionsPostgres(id) 
 }

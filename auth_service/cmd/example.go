@@ -10,10 +10,14 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"context"
 
 	"auth_service/pkg/handlers"
 	"auth_service/pkg/repository"
 	"auth_service/pkg/service"
+	"github.com/minio/minio-go/v7"
+
+
 
 	"github.com/IBM/sarama"
 
@@ -39,6 +43,11 @@ func main() {
 	if err != nil{
 		log.Fatalln("minio err", err.Error())
 	}
+
+	err = minios3.MakeBucket(context.Background(), "user-img-bucket", minio.MakeBucketOptions{Region: "eu-central-1", ObjectLocking: true})
+	if err != nil {
+    	log.Println(err)
+	}
 	sarama_config := sarama.NewConfig()
 
 	sarama_config.Consumer.Return.Errors = true
@@ -63,6 +72,7 @@ func main() {
 		Repos: repos,
 		JWTManager: jwt_manager,
 		Producer: producer,
+		MinIO: minios3,
 	})
 	partConsumer, err := consumer.ConsumePartition(service.ConfirmTopic, 0, sarama.OffsetNewest)
 	if err != nil {
@@ -71,6 +81,8 @@ func main() {
 	defer partConsumer.Close()
 
 	my_handlers := handlers.NewHandler(services, jwt_manager)
+
+
 
 	go func() {
 		if err := my_handlers.InitRouter().Run(":8081"); err != nil {
@@ -104,13 +116,13 @@ func main() {
 		}
 	}()
 
-	log.Print("AuthService Started")
+	log.Println("AuthService Started")
 	
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
 
-	log.Print("AuthService Shutting Down")
+	log.Println("AuthService Shutting Down")
 
 	if err := db.Close(); err != nil {
 		log.Fatalf("error occured while running http server: %s", err.Error())

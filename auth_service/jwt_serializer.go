@@ -12,7 +12,7 @@ type JWTToken struct {
 }
 
 type RefreshToken struct {
-	Refresh string `json:"refresh" valid:"-"`
+	Refresh string `json:"refresh" binding:"required" valid:"-"`
 }
 
 type LoginPostgresData struct{

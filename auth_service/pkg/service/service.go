@@ -4,7 +4,8 @@ import (
 	"auth_service/pkg/repository"
 	"auth_service"
 	"github.com/IBM/sarama"
-	
+	"github.com/minio/minio-go/v7"
+
 )
 
 const (
@@ -17,10 +18,13 @@ type Authorization interface{
 	ActivateUser(id int)(error)
 	LoginUser(user authservice.LoginUser) (authservice.JWTToken, error)
 	RefreshJWTToken(refresh string) (authservice.JWTToken, error)
+	DeleteRefreshJWTToken(refresh string) (error)
+	CloseAllSessions(id int) (error)
 }
 
 type Profile interface{
 	UserProfile( user_id int) (authservice.ProfileSerializer, error)
+	UpdateProfileImage(user_id int, file_data  authservice.FileUploadSerializer)(error)
 }
 
 type JWTManager interface{   
@@ -34,6 +38,7 @@ type Deps struct {
     Repos *repository.Repository
 	JWTManager JWTManager
 	Producer sarama.SyncProducer
+	MinIO   *minio.Client
 
 }
 
@@ -44,7 +49,7 @@ type Service struct {
 
 func NewService(deps Deps) *Service{
     new_auth_service := NewAuthService(deps.Repos.Authorization, deps.JWTManager, deps.Producer)
-    new_profile_service := NewProfileService(deps.Repos.Profile)
+    new_profile_service := NewProfileService(deps.Repos.Profile, deps.MinIO)
 	
 	return &Service{
 		Authorization: new_auth_service,

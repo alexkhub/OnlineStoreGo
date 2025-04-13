@@ -7,9 +7,9 @@ import (
 )
 
 func NewMinIOConnect() (*minio.Client, error) {
-	endpoint := "localhost:9001"
-	accessKeyID := "dAg7RJqmhyLDcn7P8L38"
-	secretAccessKey := "dn8P1NXBDlSmNH4O8JRSSiXSqNCgF48nYPOeseuR"
+	endpoint := "minio:9000"
+	accessKeyID := "SX1o3y8kcjMpN6lLjsHh"
+	secretAccessKey := "PuRrMhFaap1f3RBDd0S5pHNly9dpFYtzO2BKNg7M"
 	useSSL := false
 
 	minioClient, err := minio.New(endpoint, &minio.Options{

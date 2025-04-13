@@ -11,6 +11,7 @@ type AuthRegistrationSerializer struct{
 	Username string `json:"username" binding:"required" valid:"-"`
 	Email    string `json:"email" binding:"required" valid:"email"`
 	Password string `json:"password" binding:"required" valid:"-"`
+	RepeatPassword string `json:"repet_password" binding:"required" valid:"-"`
 	FirstName string `json:"first_name" valid:"-"`
 	LastName string `json:"last_name" valid:"-"`
 }
@@ -39,10 +40,17 @@ type ProfileSerializer struct {
 	Username string `json:"username"  db:"username" valid:"-"`
 	Email string `json:"email" valid:"email" db:"email"`
 	Role string `json:"role" valid:"-" db:"role_name"`
-	FirstName string `json:"first_name"  db:"first_name" valid:"-"`
-	LastName string `json:"last_name"  db:"last_name" valid:"-"`
+	FirstName null.String  `json:"first_name"  db:"first_name" valid:"-"`
+	LastName null.String  `json:"last_name"  db:"last_name" valid:"-"`
 	DateTime time.Time `json:"datetime_create"  db:"datetime_create" valid:"-"`
 	Image null.String `json:"image" valid:"-" db:"image"`
+}
+
+type FileUploadSerializer struct {
+	FileName string
+	Size int64
+	Data []byte
+
 }
 
 

@@ -8,6 +8,7 @@ import (
 
 type AuthPostgres struct {
 	db *sqlx.DB
+	
 }
 
 func NewAuthPostgres(db *sqlx.DB) *AuthPostgres{
@@ -94,4 +95,18 @@ func (r *AuthPostgres) UpdateJwtRefreshPostres(user_id int , refresh, new_refres
 	return  err
 
 	
+}
+
+func (r *AuthPostgres) DeleteRefreshJWTTokenPostgres(refresh string)(error){
+	query := fmt.Sprintf("delete from %s where  refresh_token = $1; ", RefreshTable)
+	_, err := r.db.Exec(query, refresh)
+	return err
+}
+
+
+func (r *AuthPostgres) CloseAllSessionsPostgres(id int) (error){
+	query := fmt.Sprintf("delete from %s where  user_id = $1; ", RefreshTable)
+	_, err := r.db.Exec(query, id )
+	return err
+
 }
