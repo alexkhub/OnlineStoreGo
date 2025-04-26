@@ -13,14 +13,6 @@ func (h *Handler) MainPage(c *gin.Context){
     })
 }
 
-func (h *Handler) VerifyEmail(c *gin.Context){
-    h.services.SendVerifyEmail()
-    c.JSON(http.StatusOK, gin.H{
-        "message": "ok",
-    })
-
-}
-
 func (h *Handler) AccountConfirm(c *gin.Context){
     err := h.services.AccountConfirm(c.Param("uuid"))
     if err!= nil{

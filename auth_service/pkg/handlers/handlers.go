@@ -1,22 +1,18 @@
 package handlers
 
-
 import (
 	"auth_service/pkg/service"
 	"github.com/gin-gonic/gin"
 )
 
-
 type Handler struct{
     services *service.Service
-	auth service.JWTManager
-		
+	auth service.JWTManager		
 }
 
 func NewHandler(services *service.Service, auth service.JWTManager) *Handler{
 	return &Handler{services: services, auth: auth}
 }
-
 
 func (h *Handler) InitRouter() * gin.Engine{
 	router:= gin.Default()
@@ -38,6 +34,18 @@ func (h *Handler) InitRouter() * gin.Engine{
 			
 			profile.GET("/", h.ProfileHandler)
 			profile.POST("/upload_img", h.ProfileUploadFileHandler)
+			profile.PATCH("/", h.ProfileUpdateHandler)
+			profile.DELETE("/", h.ProfileDeleteHandler)
+		}
+		admin := api.Group("/admin", h.parseAuthHeader )
+		{
+			admin.GET("/user_list", h.UserListHandler)
+			admin.GET("/role_list", h.RoleListHandker)
+			admin.GET("user/:id", h.UserDetailHandler)
+			admin.PATCH("user/:id", h.UserUpdateHandler)
+			admin.DELETE("user/:id", h.UserDeleteHandler)
+			admin.POST("unblock/:id", h.UserUnblockHandler)
+			
 		}
 		
 	}

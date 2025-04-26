@@ -14,12 +14,13 @@ services:
     ports:
       - 8080:80
       - 443:443
-      - "9000:9000"
-      - "9001:9001"
+      - 9000:9000
+      - 9001:9001
 
     depends_on: 
       - auth_service
       - notifications_service
+    restart: unless-stopped
 
 
   zookeeper:
@@ -30,7 +31,8 @@ services:
     hostname: zookeeper
     container_name: zookeeper
     ports:
-      - "2181:2181"
+      - 2181:2181
+    restart: unless-stopped
 
 
 
@@ -41,8 +43,9 @@ services:
     depends_on:
       - zookeeper
     ports:
-      - "9092:9092"
-      - "9093:9093"
+      - 9092:9092
+      - 9093:9093
+    restart: unless-stopped
     
     environment:
       - KAFKA_BROKER_ID:1
@@ -60,7 +63,7 @@ services:
       - kafka
     ports:
       - "7777:8080"
-    restart: always
+    restart: unless-stopped
     environment:
       - KAFKA_CLUSTERS_0_NAME=kafka
       - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:9092
@@ -73,12 +76,13 @@ services:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: alex0000
       POSTGRES_DB: store_db
-      PGDATA: /var/lib/postgresql/data/pgdata
+      PGDATA: /data/postgres
   
-    expose:
+    ports:
       - "5432:5432"
     volumes:
-      - ./var/pgdata:/var/lib/postgresql/data/pgdataç
+       - ./var/postgres:/data/postgres
+    restart: unless-stopped
 
   minio:
     image: minio/minio:latest
@@ -86,13 +90,9 @@ services:
     expose:
     - "9000"
     - "9001"
-
     # ports:
     #   - "9000:9000"
     #   - "9001:9001"
-
-    
-    
     environment:
       MINIO_ROOT_USER: root
       MINIO_ROOT_PASSWORD: alex0000
@@ -102,7 +102,7 @@ services:
       - ./var/storage-minio:/data
 
     command: server --address ":9000" --console-address ":9001" /data
-    restart: always
+    restart: unless-stopped
  
   auth_service:
     build: auth_service
@@ -114,6 +114,7 @@ services:
 
     ports:
       - "8081:8081"
+    
 
   notifications_service:
     build: notifications_service

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	notificationsservice "notifications_service"
 	"notifications_service/pkg/repository"
 	"time"
 
@@ -26,11 +27,11 @@ func NewEmailService(repos repository.Email, consumer sarama.Consumer, producer 
 	}
 }
 
-func (s *EmailService) SendVerifyEmail(){
+func (s *EmailService) SendVerifyEmail(user_email string, subject string, body string){
 	go func (){
-		err := SendEmail("aleksandrkhubaev04@gmail.com", "Verify", "No body")
+		err := SendEmail(user_email , subject , body)
 		if err!=nil{
-			log.Println("Send email")
+			log.Printf("Send verify email error %s", err)
 		}
 	}()
 }
@@ -61,4 +62,23 @@ func (s *EmailService) AccountConfirm(uuid string) (error){
 
 
 	return err
+}
+
+func (s *EmailService) SendBlockEmail(data notificationsservice.UserBlockResponseSerializer){
+	go func(){
+		var subject, body string
+		
+		if data.Block{
+			subject = "Acccount block"
+			body = fmt.Sprintf("You account blocked at %s", time.Now().Format(time.DateTime))
+		}else{
+			subject = "Acccount unblock"
+			body = fmt.Sprintf("You account unblocked at %s", time.Now().Format(time.DateTime))
+		}
+		err := SendEmail(data.Email , subject , body)
+		if err!=nil{
+			log.Printf("Send block email error %s", err)
+		}
+
+	}()
 }

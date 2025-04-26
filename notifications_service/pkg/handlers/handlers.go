@@ -19,7 +19,7 @@ func NewHandler(services *service.Service) *Handler{
 func (h *Handler) InitRouter() * gin.Engine{
 	router:= gin.Default()
 	router.GET("/", h.MainPage)
-	router.GET("/email",h.VerifyEmail)
+	// router.GET("/email",h.VerifyEmail)
 	router.GET("/confirm/:uuid", h.AccountConfirm)
 
 	return router

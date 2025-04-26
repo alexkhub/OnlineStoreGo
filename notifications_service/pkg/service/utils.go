@@ -36,6 +36,8 @@ func SendEmail(user_email string, subject string, body string) (error){
 	return nil
 }
 
+
+
 func SendConfirmKafkaMessage(producer sarama.SyncProducer, id int) (error){
     var data SendConfirmKafkaMessageData
     data.Id = id

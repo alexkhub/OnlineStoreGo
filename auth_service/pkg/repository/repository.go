@@ -1,10 +1,11 @@
 package repository
 
 import (
+	"auth_service"
+	"net/url"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
-	"auth_service"
-	
 )
 
 const (
@@ -27,12 +28,24 @@ type Authorization interface {
 
 type Profile interface {
 	UserProfilePostgres(user_id int) (authservice.ProfileSerializer, error)
-	UpdateProfileImage(user_id int, image_id string) (error)
+	UpdateProfileImagePostgres(user_id int, image_id string) (error)
+	ProfileUpdatePostgres(user_id int, user_data authservice.ProfileSerializer)(error)
+	ProfileDeletePostgres(user_id int) (error)
+}
+
+type Admin interface{
+	UserListPostgres(filter url.Values)([]authservice.AdminUserListSerializer, error)
+	RoleListPostgres()([]authservice.RoleListSerializer, error)
+	UserBlockPostgres(user_id int)(error)
+	UserUnblockPostgres(user_id int)(error)
+	GetBlockDataPostgres(user_id int)( authservice.UserBlockResponseSerializer, error)
+
 }
 
 type Repository struct{
 	Authorization
 	Profile
+	Admin
 }
 
 type ReposDebs struct{
@@ -45,6 +58,7 @@ func NewRepository(debs ReposDebs) *Repository{
     return &Repository{
 		Authorization: NewAuthPostgres(debs.DB),
 		Profile: NewProfilePostgres(debs.DB, debs.MinIO),
+		Admin: NewAdminPostgres(debs.DB),
 		
     }
 }

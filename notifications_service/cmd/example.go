@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	
 	"log"
 	"notifications_service"
 	"os"
@@ -13,7 +14,6 @@ import (
 	"notifications_service/pkg/service"
 
 	"github.com/IBM/sarama"
-	
 
 	_ "github.com/lib/pq"
 )
@@ -55,6 +55,12 @@ func main() {
 	}
 	defer partConsumer.Close()
 
+	partConsumerBlock, err := consumer.ConsumePartition(service.BlockTopic, 0, sarama.OffsetNewest)
+	if err != nil {
+		log.Fatalf("Failed to consume partition: %v", err)
+	}
+	defer partConsumer.Close()
+
 	my_handlers := handlers.NewHandler(services)
 
 	go func() {
@@ -66,7 +72,7 @@ func main() {
 		for {
 			select {
 			// (обработка входящего сообщения и отправка ответа в Kafka)
-			case msg, ok := <-partConsumer.Messages():
+			case msg, ok := <-partConsumer.Messages():	
 				if !ok {
 					log.Println("Channel closed, exiting")
 					return
@@ -86,10 +92,26 @@ func main() {
 					log.Printf("Create Verify link: %s", err)
 				}
 				
-				service.SendEmail(receivedMessage.Email, "Verify Email", message)
-				log.Printf("Received message: %+v\n", receivedMessage)
+				services.SendVerifyEmail(receivedMessage.Email, "Verify Email", message)
+				
 
+
+			case msg, ok := <-partConsumerBlock.Messages():	
+				if !ok {
+					log.Println("Channel closed, exiting")
+					return
+				}
+				var receivedMessage notificationsservice.UserBlockResponseSerializer
+				err := json.Unmarshal(msg.Value, &receivedMessage)
+
+				if err != nil {
+					log.Printf("Error unmarshaling JSON: %s", err)
+					continue
+				}
+				services.SendBlockEmail(receivedMessage)
 			}
+
+			
 		}
 	}()
 
