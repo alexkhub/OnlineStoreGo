@@ -27,6 +27,8 @@ type Deps struct {
     Repos *repository.Repository
 	Consumer sarama.Consumer
 	Producer sarama.SyncProducer
+	From string 
+	Password string
 	
 	
 }
@@ -37,7 +39,7 @@ type Service struct {
 }
 
 func NewService(deps Deps) *Service{
-	new_email_service := NewEmailService(deps.Repos.Email, deps.Consumer, deps.Producer)
+	new_email_service := NewEmailService(deps.Repos.Email, deps.Consumer, deps.Producer, deps.From, deps.Password)
 	return &Service{
 		Email: new_email_service,
 		

@@ -2,24 +2,41 @@ package main
 
 import (
 	"encoding/json"
-	
+	"fmt"
+	"strconv"
+
 	"log"
 	"notifications_service"
 	"os"
 	"os/signal"
 	"syscall"
 
+	"notifications_service/configs"
 	"notifications_service/pkg/handlers"
 	"notifications_service/pkg/repository"
 	"notifications_service/pkg/service"
 
 	"github.com/IBM/sarama"
+	"github.com/spf13/viper"
 
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	db, err := repository.NewDBConnect()
+	configs.LoadConfig()
+
+	dbConfig := viper.GetStringMapString("db")
+	db_conf_port, _ := strconv.Atoi(dbConfig["port"])
+
+	kafkaConfig := viper.GetStringMapString("kafka")
+	kafka_conf_port, _ := strconv.Atoi(kafkaConfig["port"])
+
+	email_config := viper.GetStringMapString("email")
+
+
+
+	db, err := repository.NewDBConnect(dbConfig["host"], db_conf_port, dbConfig["user"], dbConfig["password"], dbConfig["dbname"], dbConfig["sslmode"])
+	
 
 	if err != nil {
 		log.Fatalln("db err")
@@ -31,13 +48,13 @@ func main() {
 
 	sarama_config.Consumer.Return.Errors = true
 
-	producer, err := sarama.NewSyncProducer([]string{"kafka:9092"}, nil)
+	producer, err := sarama.NewSyncProducer([]string{fmt.Sprintf("%s:%d", kafkaConfig["host"], kafka_conf_port)}, nil)
 	if err != nil {
 		log.Fatalf("Failed to create producer: %v", err)
 	}
 	defer producer.Close()
 
-	consumer, err := sarama.NewConsumer([]string{"kafka:9092"}, nil)
+	consumer, err := sarama.NewConsumer([]string{fmt.Sprintf("%s:%d", kafkaConfig["host"], kafka_conf_port)}, nil)
 	if err != nil {
 		log.Fatalf("Failed to create producer: %v", err)
 	}
@@ -47,6 +64,8 @@ func main() {
 		Repos:    repos,
 		Consumer: consumer,
 		Producer: producer,
+		From: email_config["from"],
+		Password: email_config["password"],
 	})
 	
 	partConsumer, err := consumer.ConsumePartition(service.AuthTopic, 0, sarama.OffsetNewest)
@@ -65,7 +84,7 @@ func main() {
 
 	go func() {
 		if err := my_handlers.InitRouter().Run(":8082"); err != nil {
-			log.Fatalf("server dont start")
+			log.Fatalf("server didn't start")
 		}
 	}()
 	go func() {

@@ -9,7 +9,9 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -o /example cmd/example.go
 
 FROM alpine:3
+COPY /configs/config.yaml /configs/config.yaml
 COPY --from=builder example /bin/example
+
 ENTRYPOINT ["/bin/example"]
 EXPOSE 8082
 

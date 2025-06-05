@@ -1,0 +1,17 @@
+db:
+  host: store_db
+  port: 5432
+  user: root
+  password: alex0000
+  dbname: store_db
+  sslmode: disable
+
+kafka:
+  host: kafka
+  port: 9092
+
+email:
+  from: aleksandrkhubaevwork@gmail.com
+  password: qdfgbwcyublqpler
+
+app_host: 8082

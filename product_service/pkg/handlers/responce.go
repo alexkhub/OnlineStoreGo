@@ -1,0 +1,21 @@
+package handlers
+
+import (
+	"log"
+	productservice "product_service"
+
+	"github.com/gin-gonic/gin"
+)
+
+type errorResponse struct{
+	Message string `json:"message"`
+}
+
+type getListCategoryResponse struct {
+	Data []productservice.CategorySerializer `json:"data"`
+}
+
+func newErrorMessage(c *gin.Context, statusCode int, message string){
+	log.Println(message)
+	c.AbortWithStatusJSON(statusCode, errorResponse{message})
+}

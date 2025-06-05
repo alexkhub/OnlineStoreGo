@@ -11,12 +11,9 @@ import (
 
 
 func (h *Handler) ProfileHandler(c *gin.Context){
-	err := IsAuthenticatedPermission(c)
+	IsAuthenticatedPermission(c)
 
-	if err != nil{
-		newErrorMessage(c, http.StatusUnauthorized, err.Error())
-        return
-	}
+	
 	user, err := GetUserId(c)
 
 	if err != nil{
@@ -34,12 +31,7 @@ func (h *Handler) ProfileHandler(c *gin.Context){
 }
 
 func (h *Handler) ProfileUploadFileHandler(c *gin.Context){
-	err := IsAuthenticatedPermission(c)
-
-	if err != nil{
-		newErrorMessage(c, http.StatusUnauthorized, err.Error())
-        return
-	}
+	IsAuthenticatedPermission(c)
 	user, err := GetUserId(c)
 
 	if err != nil{

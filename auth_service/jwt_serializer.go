@@ -2,7 +2,7 @@ package authservice
 
 type LoginUser struct {
 	Username string `json:"username"  valid:"-"`
-	Email string `json:"email" valid:"email"`
+	Email    string `json:"email" valid:"email"`
 	Password string `json:"password" binding:"required" valid:"-"`
 }
 
@@ -15,17 +15,16 @@ type RefreshToken struct {
 	Refresh string `json:"refresh" binding:"required" valid:"-"`
 }
 
-type LoginPostgresData struct{
-	Id int `json:"id" db:"id"`
-	Role int `json:"role" db:"role_id"`
+type LoginPostgresData struct {
+	Id       int    `json:"id" db:"id"`
+	Role     int    `json:"role" db:"role_id"`
 	Password string `json:"password" db:"hash_password"`
-	Activate bool `json:"activate" db:"activate"`
-	Block bool `json:"block" db:"block"`
-
+	Activate bool   `json:"activate" db:"activate"`
+	Block    bool   `json:"block" db:"block"`
 }
 
-type RefreshCheckUser struct{
-	Role int `json:"role" db:"role_id"`
+type RefreshCheckUser struct {
+	Role     int  `json:"role" db:"role_id"`
 	Activate bool `json:"activate" db:"activate"`
-	Block bool `json:"block" db:"block"`
+	Block    bool `json:"block" db:"block"`
 }

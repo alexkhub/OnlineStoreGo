@@ -8,7 +8,7 @@ import (
 
 func NewMinIOConnect(host string, port int, accessKeyID, secretAccessKey string, useSSL bool ) (*minio.Client, error) {
 	endpoint := fmt.Sprintf("%s:%d", host, port)
-	fmt.Println(endpoint)
+	
 
 	minioClient, err := minio.New(endpoint, &minio.Options{
 			Creds:  credentials.NewStaticV4(accessKeyID, secretAccessKey, ""),

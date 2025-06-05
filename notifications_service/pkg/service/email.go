@@ -16,20 +16,25 @@ type EmailService struct {
 	repos repository.Email
 	consumer sarama.Consumer
 	producer sarama.SyncProducer
+	from string
+	password string
 
 }
 
-func NewEmailService(repos repository.Email, consumer sarama.Consumer, producer sarama.SyncProducer) *EmailService{
+func NewEmailService(repos repository.Email, consumer sarama.Consumer, producer sarama.SyncProducer, from, password string) *EmailService{
 	return &EmailService{
 		repos:  repos,
 		consumer: consumer,
 		producer: producer,
+		from: from,
+		password: password,
+
 	}
 }
 
 func (s *EmailService) SendVerifyEmail(user_email string, subject string, body string){
 	go func (){
-		err := SendEmail(user_email , subject , body)
+		err := SendEmail(s.from, s.password, user_email , subject , body)
 		if err!=nil{
 			log.Printf("Send verify email error %s", err)
 		}
@@ -75,7 +80,7 @@ func (s *EmailService) SendBlockEmail(data notificationsservice.UserBlockRespons
 			subject = "Acccount unblock"
 			body = fmt.Sprintf("You account unblocked at %s", time.Now().Format(time.DateTime))
 		}
-		err := SendEmail(data.Email , subject , body)
+		err := SendEmail(s.from, s.password, data.Email , subject , body)
 		if err!=nil{
 			log.Printf("Send block email error %s", err)
 		}

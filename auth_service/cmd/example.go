@@ -5,40 +5,54 @@ import (
 	// "context"
 
 	authservice "auth_service"
+	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
-	"context"
 
+	"auth_service/configs"
 	"auth_service/pkg/handlers"
 	"auth_service/pkg/repository"
 	"auth_service/pkg/service"
+
 	"github.com/minio/minio-go/v7"
-
-
+	"github.com/spf13/viper"
 
 	"github.com/IBM/sarama"
 
 	_ "github.com/lib/pq"
 )
 
-const (
-	SigningKey = "fdljdcsdcsv232e3cdjif"
-    SigningKey2 = "fdvsgf34$%MJP&(^JGTOIOI)"
-)
+
 
 
 func main() {
+
+	configs.LoadConfig()
+	singConfig := viper.GetStringMapString("singing_keys")
+
+	minioConfig := viper.GetStringMapString("minio")
 	
-	db, err := repository.NewDBConnect()
+	minio_conf_port, _ := strconv.Atoi(minioConfig["port"])
+	minio_conf_useSSL, _ := strconv.ParseBool(minioConfig["use_ssl"])
+	
+	dbConfig := viper.GetStringMapString("db")
+	db_conf_port, _ := strconv.Atoi(dbConfig["port"])
+
+	kafkaConfig := viper.GetStringMapString("kafka")
+	kafka_conf_port, _ := strconv.Atoi(kafkaConfig["port"])
+
+	db, err := repository.NewDBConnect(dbConfig["host"], db_conf_port, dbConfig["user"], dbConfig["password"], dbConfig["dbname"], dbConfig["sslmode"])
 	
 	if err != nil{
 		log.Fatalln("db err")
 	}
 
-	minios3, err := repository.NewMinIOConnect()
+	minios3, err := repository.NewMinIOConnect(minioConfig["host"], minio_conf_port,  minioConfig["access_key_id"], minioConfig["secret_access_key"], minio_conf_useSSL)
 	
 	if err != nil{
 		log.Fatalln("minio err", err.Error())
@@ -52,13 +66,13 @@ func main() {
 
 	sarama_config.Consumer.Return.Errors = true
 
-	producer, err := sarama.NewSyncProducer([]string{"kafka:9092"}, nil)
+	producer, err := sarama.NewSyncProducer([]string{fmt.Sprintf("%s:%d", kafkaConfig["host"], kafka_conf_port)}, nil)
 	if err != nil {
 		log.Fatalf("failed to create producer: %v", err)
 	}
 	defer producer.Close()
 
-	consumer, err := sarama.NewConsumer([]string{"kafka:9092"}, nil)
+	consumer, err := sarama.NewConsumer([]string{fmt.Sprintf("%s:%d", kafkaConfig["host"], kafka_conf_port)}, nil)
 	if err != nil {
 		log.Fatalf("failed to create producer: %v", err)
 	}
@@ -66,7 +80,7 @@ func main() {
 
 	repos := repository.NewRepository(repository.ReposDebs{DB: db, MinIO: minios3})
 	
-	jwt_manager := service.NewManager(SigningKey, SigningKey2)
+	jwt_manager := service.NewManager(singConfig["singing_key1"], singConfig["singing_key2"])
 
 	services := service.NewService(service.Deps{
 		Repos: repos,
@@ -85,13 +99,13 @@ func main() {
 
 
 	go func() {
-		if err := my_handlers.InitRouter().Run(":8081"); err != nil {
-			log.Fatalf("server dont start")
+		if err := my_handlers.InitRouter().Run(fmt.Sprintf(":%d", viper.GetInt("app_host"))); err != nil {
+			log.Fatalf("server didn't start")
 		} 
 	}()
 
 	go func() {
-		for {
+		for{
 			select {
 			// (обработка входящего сообщения и отправка ответа в Kafka)
 			case msg, ok := <-partConsumer.Messages():
@@ -109,7 +123,7 @@ func main() {
 				 err= services.ActivateUser(receivedMessage.Id)
 
 				if err!= nil {
-					log.Printf("activate user id=%s error: %s",receivedMessage.Id, err)
+					log.Printf("Activate user id=%s error: %s",receivedMessage.Id, err)
 				}		
 				log.Printf("Received message: %+v\n", receivedMessage)
 			}

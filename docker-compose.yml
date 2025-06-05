@@ -73,9 +73,9 @@ services:
     image: postgres:latest
     container_name: store_db
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: alex0000
-      POSTGRES_DB: store_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
       PGDATA: /data/postgres
   
     ports:
@@ -94,14 +94,32 @@ services:
     #   - "9000:9000"
     #   - "9001:9001"
     environment:
-      MINIO_ROOT_USER: root
-      MINIO_ROOT_PASSWORD: alex0000
-      MINIO_PUBLIC_URL: http://localhost:9000
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+     
       USE_SSL: false
     volumes:
       - ./var/storage-minio:/data
 
     command: server --address ":9000" --console-address ":9001" /data
+    restart: unless-stopped
+  
+  redis:
+    image: redis:latest
+    container_name: store_redis
+    environment:
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - REDIS_USER=${REDIS_USER}
+      - REDIS_USER_PASSWORD=${REDIS_USER_PASSWORD}
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./var/redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "$REDIS_PASSWORD", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
     restart: unless-stopped
  
   auth_service:
@@ -125,3 +143,15 @@ services:
      
     ports:
       - "8082:8082"
+  product_service:
+    build: product_service
+    container_name: product_service
+    restart: unless-stopped
+    depends_on: 
+      - postgres
+      - minio
+      - redis
+
+    ports:
+      - "8083:8083"
+    

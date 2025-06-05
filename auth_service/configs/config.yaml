@@ -1,0 +1,24 @@
+singing_keys:
+  singing_key1: fdljdcsdcsv232e3cdjif
+  singing_key2: fdvsgf34$%MJP&(^JGTOIOI)
+
+minio:
+  host: minio
+  port: 9000
+  access_key_id: SX1o3y8kcjMpN6lLjsHh
+  secret_access_key: PuRrMhFaap1f3RBDd0S5pHNly9dpFYtzO2BKNg7M
+  use_ssl: false
+
+db:
+  host: store_db
+  port: 5432
+  user: root
+  password: alex0000
+  dbname: store_db
+  sslmode: disable
+
+kafka:
+  host: kafka
+  port: 9092
+
+app_host: 8081

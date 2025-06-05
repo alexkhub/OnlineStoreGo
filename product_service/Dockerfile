@@ -12,6 +12,6 @@ COPY /configs/config.yaml /configs/config.yaml
 COPY --from=builder example /bin/example
 
 ENTRYPOINT ["/bin/example"]
-EXPOSE 8081
+EXPOSE 8083
 
 CMD ["./example"]

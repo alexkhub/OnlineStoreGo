@@ -10,11 +10,7 @@ import (
 )
 
 func (h *Handler) UserListHandler (c *gin.Context){
-	err := IsStaffPermission(c)
-	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
-        return 
-	}
+	IsStaffPermission(c)
 	filter := c.Request.URL.Query()
 	user_list, err := h.services.UserList(filter)
 
@@ -30,11 +26,8 @@ func (h *Handler) UserListHandler (c *gin.Context){
 }
 
 func (h *Handler) RoleListHandker (c *gin.Context){
-	err := IsStaffPermission(c)
-	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
-        return 
-	}
+	IsStaffPermission(c)
+
 	user_role, err := h.services.RoleList()
 
 	if err != nil{
@@ -47,11 +40,8 @@ func (h *Handler) RoleListHandker (c *gin.Context){
 }
 
 func (h *Handler) UserDetailHandler (c *gin.Context){
-	err := IsStaffPermission(c)
-	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
-        return 
-	}
+	IsStaffPermission(c)
+	
 	user_id, err := strconv.Atoi(c.Param("id"))
 	if err != nil{
 		newErrorMessage(c, http.StatusForbidden, err.Error())    
@@ -69,11 +59,8 @@ func (h *Handler) UserDetailHandler (c *gin.Context){
 }
 
 func (h *Handler) UserUpdateHandler (c *gin.Context){
-	err := IsAdminPermission(c)
-	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
-        return 
-	}
+	IsAdminPermission(c)
+	
 	var input authservice.ProfileSerializer
 	user_id, err := strconv.Atoi(c.Param("id"))
 	if err != nil{
@@ -99,15 +86,11 @@ func (h *Handler) UserUpdateHandler (c *gin.Context){
 }
 
 func (h *Handler) UserDeleteHandler (c *gin.Context){
-	err := IsAdminPermission(c)
-	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
-        return 
-	}
+	IsAdminPermission(c)
 	
 	user_id, err := strconv.Atoi(c.Param("id"))
 	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
+		newErrorMessage(c, http.StatusInternalServerError, err.Error())    
         return 
 	}
 	err = h.services.Admin.UserBlock(user_id) 
@@ -121,15 +104,11 @@ func (h *Handler) UserDeleteHandler (c *gin.Context){
 }
 
 func (h *Handler) UserUnblockHandler (c *gin.Context){
-	err := IsAdminPermission(c)
-	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
-        return 
-	}
+	IsAdminPermission(c)
 	
 	user_id, err := strconv.Atoi(c.Param("id"))
 	if err != nil{
-		newErrorMessage(c, http.StatusForbidden, err.Error())    
+		newErrorMessage(c, http.StatusInternalServerError, err.Error())    
         return 
 	}
 	err = h.services.Admin.UserUnblock(user_id) 

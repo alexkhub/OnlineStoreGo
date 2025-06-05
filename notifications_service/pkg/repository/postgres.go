@@ -9,8 +9,8 @@ const (
 )
 
 
-func NewDBConnect() (*sqlx.DB, error){
-	db, err :=  sqlx.Open("postgres", "host=store_db port=5432 user=root password=alex0000  dbname=store_db sslmode=disable")
+func NewDBConnect(host string, port int, user, password, dbname, sslmode string) (*sqlx.DB, error){
+	db, err :=  sqlx.Open("postgres", fmt.Sprintf("host=%s port=%d user=%s password=%s  dbname=%s sslmode=%s", host, port, user, password, dbname, sslmode))
 	if err != nil{
 		fmt.Println("DB ERROR")
 		return nil, err 

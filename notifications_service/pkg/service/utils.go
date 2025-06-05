@@ -14,9 +14,8 @@ type SendConfirmKafkaMessageData struct{
     Id int `json: "id"`
 }
 
-func SendEmail(user_email string, subject string, body string) (error){
-    from := "aleksandrkhubaevwork@gmail.com"
-    pass := "qdfgbwcyublqpler"
+func SendEmail(from, password, user_email, subject, body string) (error){
+
 
 
     msg := "From: " + from + "\n" +
@@ -25,7 +24,7 @@ func SendEmail(user_email string, subject string, body string) (error){
         body
 
     err := smtp.SendMail("smtp.gmail.com:587",
-        smtp.PlainAuth("", from, pass, "smtp.gmail.com"),
+        smtp.PlainAuth("", from, password, "smtp.gmail.com"),
         from, []string{user_email}, []byte(msg))
 
     if err != nil {
