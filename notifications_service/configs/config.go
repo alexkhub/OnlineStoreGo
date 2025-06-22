@@ -6,25 +6,19 @@ import (
 	"github.com/spf13/viper"
 )
 
-
 type Config struct {
-
-	DbConfig `mapstructure:"db"`
+	DbConfig    `mapstructure:"db"`
 	KafkaConfig `mapstructure:"kafka"`
-	AppHost string `mapstructure:"app_host"`
+	AppHost     string `mapstructure:"app_host"`
 }
 
-
-
-
 type DbConfig struct {
-	Host string `mapstructure:"host"`
-	Port string `mapstructure:"port"`
-	User string `mapstructure:"user"`
+	Host     string `mapstructure:"host"`
+	Port     string `mapstructure:"port"`
+	User     string `mapstructure:"user"`
 	Password string `mapstructure:"password"`
-	Dbname string `mapstructure:"dbname"`
-	Sslmode string `mapstructure:"sslmode"`
-
+	Dbname   string `mapstructure:"dbname"`
+	Sslmode  string `mapstructure:"sslmode"`
 }
 
 type KafkaConfig struct {
@@ -34,14 +28,12 @@ type KafkaConfig struct {
 
 var AppConfig Config
 
-func LoadConfig(){
+func LoadConfig() {
 
 	viper.SetConfigName("config")
 	viper.SetConfigType("yaml")
 	viper.AddConfigPath(".././configs")
 
-	
-	
 	err := viper.ReadInConfig()
 	if err != nil {
 		log.Fatalf("Load Config error %s", err.Error())

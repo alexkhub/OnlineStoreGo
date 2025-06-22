@@ -1,27 +1,25 @@
 package repository
 
 import (
-    "github.com/jmoiron/sqlx"
-    "time"
-  
+	"github.com/jmoiron/sqlx"
+	"time"
 )
 
-type Email interface{
-    CreateVerify(uuid string, user int) (error)
-    ChechUUID(uuid string)( int,  time.Time,  error)
+type Email interface {
+	CreateVerify(uuid string, user int) error
+	ChechUUID(uuid string) (int, time.Time, error)
 }
 
-type Repository struct{
+type Repository struct {
 	Email
 }
 
-type ReposDebs struct{
+type ReposDebs struct {
 	DB *sqlx.DB
-    
 }
 
-func NewRepository(debs ReposDebs) *Repository{
-    return &Repository{
-        Email: NewEmailPostgres(debs.DB),
-    }
+func NewRepository(debs ReposDebs) *Repository {
+	return &Repository{
+		Email: NewEmailPostgres(debs.DB),
+	}
 }

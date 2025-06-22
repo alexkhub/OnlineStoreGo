@@ -33,10 +33,7 @@ func main() {
 
 	email_config := viper.GetStringMapString("email")
 
-
-
 	db, err := repository.NewDBConnect(dbConfig["host"], db_conf_port, dbConfig["user"], dbConfig["password"], dbConfig["dbname"], dbConfig["sslmode"])
-	
 
 	if err != nil {
 		log.Fatalln("db err")
@@ -64,10 +61,10 @@ func main() {
 		Repos:    repos,
 		Consumer: consumer,
 		Producer: producer,
-		From: email_config["from"],
+		From:     email_config["from"],
 		Password: email_config["password"],
 	})
-	
+
 	partConsumer, err := consumer.ConsumePartition(service.AuthTopic, 0, sarama.OffsetNewest)
 	if err != nil {
 		log.Fatalf("Failed to consume partition: %v", err)
@@ -91,7 +88,7 @@ func main() {
 		for {
 			select {
 			// (обработка входящего сообщения и отправка ответа в Kafka)
-			case msg, ok := <-partConsumer.Messages():	
+			case msg, ok := <-partConsumer.Messages():
 				if !ok {
 					log.Println("Channel closed, exiting")
 					return
@@ -105,17 +102,15 @@ func main() {
 					continue
 				}
 
-				message, err:= services.CreateVerifyLink(receivedMessage.Id)
+				message, err := services.CreateVerifyLink(receivedMessage.Id)
 
-				if err!= nil {
+				if err != nil {
 					log.Printf("Create Verify link: %s", err)
 				}
-				
+
 				services.SendVerifyEmail(receivedMessage.Email, "Verify Email", message)
-				
 
-
-			case msg, ok := <-partConsumerBlock.Messages():	
+			case msg, ok := <-partConsumerBlock.Messages():
 				if !ok {
 					log.Println("Channel closed, exiting")
 					return
@@ -130,7 +125,6 @@ func main() {
 				services.SendBlockEmail(receivedMessage)
 			}
 
-			
 		}
 	}()
 

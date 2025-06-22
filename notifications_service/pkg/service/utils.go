@@ -10,45 +10,41 @@ import (
 	"github.com/google/uuid"
 )
 
-type SendConfirmKafkaMessageData struct{
-    Id int `json: "id"`
+type SendConfirmKafkaMessageData struct {
+	Id int `json: "id"`
 }
 
-func SendEmail(from, password, user_email, subject, body string) (error){
+func SendEmail(from, password, user_email, subject, body string) error {
 
+	msg := "From: " + from + "\n" +
+		"To: " + user_email + "\n" +
+		"Subject:" + subject + "\n\n" +
+		body
 
+	err := smtp.SendMail("smtp.gmail.com:587",
+		smtp.PlainAuth("", from, password, "smtp.gmail.com"),
+		from, []string{user_email}, []byte(msg))
 
-    msg := "From: " + from + "\n" +
-        "To: " + user_email + "\n" +
-        "Subject:"+ subject + "\n\n" +
-        body
-
-    err := smtp.SendMail("smtp.gmail.com:587",
-        smtp.PlainAuth("", from, password, "smtp.gmail.com"),
-        from, []string{user_email}, []byte(msg))
-
-    if err != nil {
-        log.Printf("smtp error: %s", err)
-        return err 
-    }
-    log.Println("Successfully sended to " + user_email)
+	if err != nil {
+		log.Printf("smtp error: %s", err)
+		return err
+	}
+	log.Println("Successfully sended to " + user_email)
 	return nil
 }
 
+func SendConfirmKafkaMessage(producer sarama.SyncProducer, id int) error {
+	var data SendConfirmKafkaMessageData
+	data.Id = id
+	requestID := uuid.New().String()
 
-
-func SendConfirmKafkaMessage(producer sarama.SyncProducer, id int) (error){
-    var data SendConfirmKafkaMessageData
-    data.Id = id
-    requestID := uuid.New().String()
-    
 	userJson, err := json.Marshal(data)
 	if err != nil {
 		return err
 	}
 	msg := &sarama.ProducerMessage{
 		Topic: ConfirmTopic,
-		Key: sarama.StringEncoder(requestID),
+		Key:   sarama.StringEncoder(requestID),
 		Value: sarama.StringEncoder(userJson),
 	}
 	_, _, err = producer.SendMessage(msg)

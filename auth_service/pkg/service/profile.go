@@ -5,12 +5,10 @@ import (
 	"auth_service/pkg/repository"
 	"bytes"
 	"context"
-
-	"strings"
-	"time"
-
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"strings"
+	"time"
 )
 
 type ProfileService struct {
@@ -31,21 +29,18 @@ func (s *ProfileService) UserProfile(user_id int) (authservice.ProfileSerializer
 	if err != nil {
 		return data, err
 	}
-
 	image_url, err := s.minIO.PresignedGetObject(context.Background(), "user-img-bucket", data.Image.String, time.Second*24*60*60, nil)
-	
+
 	if err != nil {
 		return data, err
 	}
-	data.Image.String = strings.Replace(image_url.String(), "minio", "localhost", 1)
-
+	data.Image.SetValid(strings.Replace(image_url.String(), "minio", "localhost", 1))
 	return data, err
 }
 
 func (s *ProfileService) UpdateProfileImage(user_id int, file_data authservice.FileUploadSerializer) error {
 
 	objectID := uuid.New().String() + file_data.FileName
-
 	file := bytes.NewReader(file_data.Data)
 	_, err := s.minIO.PutObject(context.Background(), "user-img-bucket", objectID, file, file_data.Size, minio.PutObjectOptions{ContentType: "application/octet-stream"})
 	if err != nil {

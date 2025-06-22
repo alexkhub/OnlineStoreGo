@@ -9,17 +9,13 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
-
-
-type Manager struct{
+type Manager struct {
 	signingKey string
-
 }
 
-func NewManager(signingKey string) *Manager{
+func NewManager(signingKey string) *Manager {
 	return &Manager{signingKey: signingKey}
 }
-
 
 func (m *Manager) Parse(accessToken string) (productservice.AuthMiddlewareSerializer, error) {
 	var auth_parse productservice.AuthMiddlewareSerializer
@@ -37,8 +33,8 @@ func (m *Manager) Parse(accessToken string) (productservice.AuthMiddlewareSerial
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		
-		return auth_parse,  errors.New("error get user claims from token")
+
+		return auth_parse, errors.New("error get user claims from token")
 	}
 
 	err = json.Unmarshal([]byte(claims["sub"].(string)), &auth_parse)
@@ -46,7 +42,6 @@ func (m *Manager) Parse(accessToken string) (productservice.AuthMiddlewareSerial
 		fmt.Println(err)
 		return auth_parse, err
 	}
-	
+
 	return auth_parse, nil
 }
-

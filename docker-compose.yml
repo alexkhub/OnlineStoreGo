@@ -18,8 +18,9 @@ services:
       - 9001:9001
 
     depends_on: 
-      - auth_service
-      - notifications_service
+      # - auth_service
+      # - notifications_service
+      - product_service
     restart: unless-stopped
 
 

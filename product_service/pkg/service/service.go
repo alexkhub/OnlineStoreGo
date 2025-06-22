@@ -16,13 +16,19 @@ type Admin interface {
 	CreateCategory(data productservice.CategorySerializer) (int, error)
 	CreateProduct(data productservice.AdminCreateProductSerializer) (int, error)
 	AddImage(product int, data map[string]productservice.FileUploadSerializer) (map[string]string, error)
+	ProductDelete(product_id int)(error)
+	AdminProductDetail(id int)(productservice.AdminProductDetailSerailizer, error)
+	RemoveImage(product_id int, name string)(error)
 }
 
 type Product interface {
-	CatregoList()([]productservice.CategorySerializer, error)
+	CatregoList() ([]productservice.CategorySerializer, error)
+	ProductList() ([]productservice.ProductListSerailizer, error)
+	CheckProduct(id int) bool
+	ProductDetail(id int) (productservice.ProductDetailSerailizer, error)
 }
 
-type JWTManager interface{   
+type JWTManager interface {
 	Parse(accessToken string) (productservice.AuthMiddlewareSerializer, error)
 }
 
@@ -31,16 +37,16 @@ type Service struct {
 	Product
 }
 
-type Deps struct{
-	Repos *repository.Repository
+type Deps struct {
+	Repos      *repository.Repository
 	JWTManager JWTManager
-	MinIO *minio.Client	
-	Redis *redis.Client
+	MinIO      *minio.Client
+	Redis      *redis.Client
 }
 
-func NewService(deps Deps) *Service{
+func NewService(deps Deps) *Service {
 	return &Service{
-		Admin: NewAdminService(deps.Repos.Admin, deps.MinIO),
-		Product: MewProductService(deps.Repos.Product, deps.MinIO, deps.Redis),
+		Admin:   NewAdminService(deps.Repos.Admin, deps.MinIO, deps.Repos.MinIO),
+		Product: MewProductService(deps.Repos.Product, deps.Redis, deps.Repos.MinIO),
 	}
 }
