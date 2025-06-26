@@ -2,7 +2,6 @@ package repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log"
 
@@ -25,7 +24,7 @@ func (m *MinioClient) GetOne(bucketName string, objectID string) (string, error)
 
 	url, err := m.minIO.PresignedGetObject(context.Background(), bucketName, objectID, time.Second*24*60*60, nil)
 	if err != nil {
-		return "", errors.New(fmt.Sprintf("get image URL error %s: %v", objectID, err))
+		return "", fmt.Errorf("get image URL error %s: %v", objectID, err)
 	}
 	return strings.Replace(url.String(), "minio", "localhost", 1), nil
 }
@@ -48,7 +47,7 @@ func (m *MinioClient) GetMany(backetName string, objectIDs []string) (map[string
 
 			if err != nil {
 				errCh <- err
-				cancel() // Отмена операции при возникновении ошибки
+				cancel() 
 				return
 			}
 			urlCh <- map[string]string{
@@ -171,7 +170,7 @@ func (m *MinioClient) RemoveOne(bucketName, objectID string) error {
 
 	err := m.minIO.RemoveObject(context.Background(), bucketName, objectID, minio.RemoveObjectOptions{})
 	if err != nil {
-		return err 
+		return err
 	}
-	return nil 
+	return nil
 }

@@ -2,9 +2,11 @@ package handlers
 
 import (
 	"io"
+	"log"
 	"net/http"
 	productservice "product_service"
 	"strconv"
+
 	v "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
@@ -111,7 +113,6 @@ func (h *Handler) AddImageHandler(c *gin.Context) {
 
 }
 
-
 func (h *Handler) ProductDeleteHandler(c *gin.Context) {
 	IsAdminPermission(c)
 	product_id, err := strconv.Atoi(c.Param("id"))
@@ -133,7 +134,6 @@ func (h *Handler) ProductDeleteHandler(c *gin.Context) {
 
 	c.JSON(http.StatusNoContent, nil)
 }
-
 
 func (h *Handler) AdminProductDetailHandler(c *gin.Context) {
 	IsAdminPermission(c)
@@ -170,4 +170,42 @@ func (h *Handler) RemoveImageHandler(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, nil)
+}
+
+func (h *Handler) UpdateProductHandler(c *gin.Context) {
+	IsAdminPermission(c)
+	var input productservice.AdminUpdateProductSerializer
+
+	if err := c.BindJSON(&input); err != nil {
+		newErrorMessage(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	_, err := v.ValidateStruct(input)
+	if err != nil {
+		newErrorMessage(c, http.StatusBadRequest, err.Error())
+		return
+	}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorMessage(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	log.Println(input.Category)
+
+	err = h.services.UpdateProduct(id, input)
+	if err != nil {
+		newErrorMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	data, err := h.services.AdminProductDetail(id)
+
+	if err != nil {
+		newErrorMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	c.JSON(http.StatusOK, data)
+
 }

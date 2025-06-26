@@ -14,7 +14,7 @@ func (h *Handler) MainPage(c *gin.Context) {
 }
 
 func (h *Handler) ListCategoryHandler(c *gin.Context) {
-	data, err := h.services.Product.CatregoList()
+	data, err := h.services.Product.CategoryList()
 	if err != nil {
 		newErrorMessage(c, http.StatusInternalServerError, err.Error())
 		return

@@ -27,7 +27,7 @@ func NewProductPostgres(db *sqlx.DB, redisdb *redis.Client, minIO *minio.Client)
 	}
 }
 
-func (r *ProductPostgres) CatregoListPostgres(cache bool) ([]productservice.CategorySerializer, error) {
+func (r *ProductPostgres) CategoryListPostgres(cache bool) ([]productservice.CategorySerializer, error) {
 	var data []productservice.CategorySerializer
 	query := fmt.Sprintf("select id, name from %s;", CategoryTable)
 
@@ -56,7 +56,7 @@ func (r *ProductPostgres) ProductListPostgres() ([]productservice.ProductListSer
 	var data []productservice.ProductListSerailizer
 	query := fmt.Sprintf(`SELECT  product.id, product.name, product.first_price, 
     product.discount, product.price, category.name as category, image.image_uuid
-	FROM %s join %s on product.category = category.id LEFT JOIN LATERAL (
+	FROM %s  left join %s on product.category = category.id LEFT JOIN LATERAL (
 	SELECT image.image_uuid
 	FROM %s 
 	JOIN %s ON image.id = product_image.image
@@ -78,7 +78,7 @@ func (r *ProductPostgres) ProductDetailPostgres(id int) (productservice.ProductD
 	var product productservice.ProductDetailSerailizer
 	query := fmt.Sprintf(`SELECT product.id, product.name, product.first_price, 
     product.discount, product.price, category.name as category 
-	FROM %s join %s on product.category = category.id where product.id = $1`, ProductTable, CategoryTable)
+	FROM %s left join %s on product.category = category.id where product.id = $1`, ProductTable, CategoryTable)
 
 	err := r.db.Get(&product, query, id)
 	if err != nil {

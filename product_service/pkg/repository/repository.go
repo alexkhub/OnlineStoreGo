@@ -23,17 +23,16 @@ type Admin interface {
 	AddImagePostgres(product_id int, image string) error
 	DeleteProductPostgres(id int) error
 	AdminProductDetailPostgres(id int) (productservice.AdminProductDetailSerailizer, error)
-	GetImage(product_id int) ([]productservice.ImageSerializer, error)
+	GetImagesPostgres(product_id int) ([]productservice.ImageSerializer, error)
 	DeleteImagePostgres(name string) error
-	
+	UpdateProductPostgres(product_id int, product_data productservice.AdminUpdateProductSerializer) error
 }
 
 type Product interface {
-	CatregoListPostgres(cache bool) ([]productservice.CategorySerializer, error)
+	CategoryListPostgres(cache bool) ([]productservice.CategorySerializer, error)
 	ProductListPostgres() ([]productservice.ProductListSerailizer, error)
 	CheckProductPostgres(id int) bool
 	ProductDetailPostgres(id int) (productservice.ProductDetailSerailizer, error)
-	
 }
 
 type MinIO interface {

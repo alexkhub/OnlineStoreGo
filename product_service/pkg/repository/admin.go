@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"log"
 	productservice "product_service"
@@ -10,7 +11,6 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
-
 )
 
 type AdminPostgres struct {
@@ -114,25 +114,22 @@ func (r *AdminPostgres) DeleteProductPostgres(id int) error {
 	return err
 }
 
-
-func (r *AdminPostgres) AdminProductDetailPostgres(id int) (productservice.AdminProductDetailSerailizer, error){
+func (r *AdminPostgres) AdminProductDetailPostgres(id int) (productservice.AdminProductDetailSerailizer, error) {
 	var product productservice.AdminProductDetailSerailizer
 	query := fmt.Sprintf(`SELECT product.id, product.name, product.first_price, 
     product.discount, product.price, category.name as category 
-	FROM %s join %s on product.category = category.id where product.id = $1`, ProductTable, CategoryTable)
+	FROM %s  left join %s on product.category = category.id where product.id = $1`, ProductTable, CategoryTable)
 
 	err := r.db.Get(&product, query, id)
 
-	 
-	
 	return product, err
 }
 
-func (r *AdminPostgres) GetImage(product_id int) ([]productservice.ImageSerializer, error){
+func (r *AdminPostgres) GetImagesPostgres(product_id int) ([]productservice.ImageSerializer, error) {
 	var images []productservice.ImageSerializer
 	query := fmt.Sprintf(`select image.image_uuid from %s 
 						join %s on product_image.image=image.id 
-						where product_image.product = $1;`, ProductImageTable, ImageTable)	
+						where product_image.product = $1;`, ProductImageTable, ImageTable)
 	err := r.db.Select(&images, query, product_id)
 
 	return images, err
@@ -141,6 +138,50 @@ func (r *AdminPostgres) GetImage(product_id int) ([]productservice.ImageSerializ
 func (r *AdminPostgres) DeleteImagePostgres(name string) error {
 	query := fmt.Sprintf("delete from %s where image_uuid = $1;", ImageTable)
 	_, err := r.db.Exec(query, name)
+	return err
+
+}
+
+func (r *AdminPostgres) UpdateProductPostgres(product_id int, product_data productservice.AdminUpdateProductSerializer) error {
+	setValue := make([]string, 0)
+	args := make([]interface{}, 0)
+	argId := 1
+
+	if product_data.Name != "" {
+		setValue = append(setValue, fmt.Sprintf("name=$%d", argId))
+		args = append(args, product_data.Name)
+		argId++
+	}
+	if product_data.Price != 0 {
+		setValue = append(setValue, fmt.Sprintf("first_price=$%d", argId))
+		args = append(args, product_data.Price)
+		argId++
+	}
+	if product_data.Discount.Valid {
+		setValue = append(setValue, fmt.Sprintf("discount=$%d", argId))
+		args = append(args, product_data.Discount.Int64)
+		argId++
+	}
+	if product_data.Description.Valid {
+		setValue = append(setValue, fmt.Sprintf("description=$%d", argId))
+		args = append(args, product_data.Description.String)
+		argId++
+	}
+	if product_data.Category.Valid {
+		setValue = append(setValue, fmt.Sprintf("category=$%d", argId))
+		if product_data.Category.Int64 == 0 {
+			args = append(args, nil)
+		} else {
+			args = append(args, product_data.Category.Int64)
+		}
+		argId++
+	}
+
+	setQuery := strings.Join(setValue, ", ")
+	query := fmt.Sprintf("Update %s set %s WHERE  id=$%d;", ProductTable, setQuery, argId)
+	args = append(args, product_id)
+	_, err := r.db.Exec(query, args...)
+
 	return err
 
 }

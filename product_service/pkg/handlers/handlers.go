@@ -33,11 +33,11 @@ func (h *Handler) InitRouter() *gin.Engine {
 			admin.POST("/create_category", h.CreateCategoryHanler)
 			admin.POST("/create_product", h.CreateProductHandler)
 			admin.POST("/upload_image/:id", h.AddImageHandler)
+
 			admin.GET("/product_detail/:id", h.AdminProductDetailHandler)
+			admin.PATCH("/product_detail/:id", h.UpdateProductHandler)
 			admin.DELETE("/product_detail/:id", h.ProductDeleteHandler)
 			admin.DELETE("/delete_image/:product_id/:name", h.RemoveImageHandler)
-
-
 
 		}
 

@@ -96,7 +96,6 @@ func (r *ProfilePostgres) ProfileUpdatePostgres(user_id int, user_data authservi
 	setQuery := strings.Join(setValue, ", ")
 
 	query := fmt.Sprintf("Update %s set %s WHERE  id=$%d;", UserTable, setQuery, argId)
-	fmt.Print(query)
 	args = append(args, user_id)
 
 	_, err := r.db.Exec(query, args...)

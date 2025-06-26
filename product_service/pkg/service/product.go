@@ -4,15 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/redis/go-redis/v9"
 	"log"
 	productservice "product_service"
 	"product_service/pkg/repository"
+	"time"
+
+	"github.com/redis/go-redis/v9"
 )
 
 type ProductService struct {
-	repos   repository.Product
-	redisDB *redis.Client
+	repos       repository.Product
+	redisDB     *redis.Client
 	minioClient repository.MinIO
 }
 
@@ -24,15 +26,15 @@ func MewProductService(repos repository.Product, redisDB *redis.Client, minioCli
 	}
 }
 
-func (s *ProductService) CatregoList() ([]productservice.CategorySerializer, error) {
+func (s *ProductService) CategoryList() ([]productservice.CategorySerializer, error) {
 	data_r, err := s.redisDB.Get(context.Background(), RedisCategory).Result()
 	if err != nil {
 		log.Printf("cache error %s ", err.Error())
-		return s.repos.CatregoListPostgres(true)
+		return s.repos.CategoryListPostgres(true)
 	}
 	if data_r == "" {
 		log.Println("category cache empty")
-		return s.repos.CatregoListPostgres(true)
+		return s.repos.CategoryListPostgres(true)
 	}
 	var data []productservice.CategorySerializer
 	err = json.Unmarshal([]byte(data_r), &data)
@@ -46,6 +48,15 @@ func (s *ProductService) CatregoList() ([]productservice.CategorySerializer, err
 }
 
 func (s *ProductService) ProductList() ([]productservice.ProductListSerailizer, error) {
+	cacheData, err := s.redisDB.Get(context.Background(), "products").Result()
+
+	if err == nil {
+		var product []productservice.ProductListSerailizer
+		if err := json.Unmarshal([]byte(cacheData), &product); err == nil {
+
+			return product, nil
+		}
+	}
 	data, err := s.repos.ProductListPostgres()
 	if err != nil {
 		return []productservice.ProductListSerailizer{}, err
@@ -70,6 +81,10 @@ func (s *ProductService) ProductList() ([]productservice.ProductListSerailizer, 
 			}
 		}
 	}
+	newCache, _ := json.Marshal(data)
+	if err := s.redisDB.Set(context.Background(), "products", newCache, 2*time.Hour).Err(); err != nil {
+		fmt.Printf("failed to set data, error: %s", err.Error())
+	}
 
 	return data, nil
 }
@@ -79,6 +94,16 @@ func (s *ProductService) CheckProduct(id int) bool {
 }
 
 func (s *ProductService) ProductDetail(id int) (productservice.ProductDetailSerailizer, error) {
+	cacheData, err := s.redisDB.Get(context.Background(), fmt.Sprintf("product%d", id)).Result()
+
+	if err == nil {
+		var product productservice.ProductDetailSerailizer
+		if err := json.Unmarshal([]byte(cacheData), &product); err == nil {
+
+			return product, nil
+		}
+	}
+
 	product, err := s.repos.ProductDetailPostgres(id)
 	if err != nil {
 		return productservice.ProductDetailSerailizer{}, err
@@ -88,7 +113,10 @@ func (s *ProductService) ProductDetail(id int) (productservice.ProductDetailSera
 		return productservice.ProductDetailSerailizer{}, err
 	}
 	product.Images = append(product.Images, imgs...)
+
+	newCache, _ := json.Marshal(product)
+	if err := s.redisDB.Set(context.Background(), fmt.Sprintf("product%d", id), newCache, 2*time.Hour).Err(); err != nil {
+		fmt.Printf("failed to set data, error: %s", err.Error())
+	}
 	return product, nil
 }
-
-

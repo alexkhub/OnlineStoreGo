@@ -12,16 +12,18 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
+	"github.com/redis/go-redis/v9"
 )
 
 type AdminService struct {
-	repos repository.Admin
-	minIO *minio.Client
+	repos       repository.Admin
+	minIO       *minio.Client
 	minioClient repository.MinIO
+	redisDB     *redis.Client
 }
 
-func NewAdminService(repos repository.Admin, minIO *minio.Client, minioClient repository.MinIO) *AdminService {
-	return &AdminService{repos: repos, minIO: minIO, minioClient: minioClient}
+func NewAdminService(repos repository.Admin, minIO *minio.Client, minioClient repository.MinIO, redisDB *redis.Client) *AdminService {
+	return &AdminService{repos: repos, minIO: minIO, minioClient: minioClient, redisDB: redisDB}
 }
 
 func (s *AdminService) CreateCategory(data productservice.CategorySerializer) (int, error) {
@@ -29,6 +31,7 @@ func (s *AdminService) CreateCategory(data productservice.CategorySerializer) (i
 }
 
 func (s *AdminService) CreateProduct(data productservice.AdminCreateProductSerializer) (int, error) {
+	go s.redisDB.Del(context.Background(), "products")
 	return s.repos.CreateProductPostgres(data)
 }
 
@@ -80,29 +83,30 @@ func (s *AdminService) AddImage(product int, data map[string]productservice.File
 			file_status[key] = value
 		}
 	}
-
+	go s.redisDB.Del(context.Background(), fmt.Sprintf("product%d", product), "products")
 	return file_status, nil
 
 }
 
-func (s *AdminService) ProductDelete(product_id int)(error){
+func (s *AdminService) ProductDelete(product_id int) error {
 	go s.minioClient.RemoveAllObjects("product", fmt.Sprintf("product%d", product_id), true)
+	go s.redisDB.Del(context.Background(), fmt.Sprintf("product%d", product_id), "products")
 	return s.repos.DeleteProductPostgres(product_id)
 }
 
-func (s *AdminService) AdminProductDetail(id int)(productservice.AdminProductDetailSerailizer, error){
+func (s *AdminService) AdminProductDetail(id int) (productservice.AdminProductDetailSerailizer, error) {
 	data, err := s.repos.AdminProductDetailPostgres(id)
-	if err != nil{
+	if err != nil {
 		return productservice.AdminProductDetailSerailizer{}, err
 	}
-	images, err := s.repos.GetImage(id)
-	if err != nil{
-		return productservice.AdminProductDetailSerailizer{}, err 
+	images, err := s.repos.GetImagesPostgres(id)
+	if err != nil {
+		return productservice.AdminProductDetailSerailizer{}, err
 	}
 
 	image_names := make([]string, 0, len(images))
 
-	for _, image := range images{
+	for _, image := range images {
 		image_names = append(image_names, fmt.Sprintf("product%d/%s", id, image.Name.String))
 	}
 
@@ -122,14 +126,19 @@ func (s *AdminService) AdminProductDetail(id int)(productservice.AdminProductDet
 
 	return data, nil
 
+}
+
+func (s *AdminService) RemoveImage(product_id int, name string) error {
+	err := s.repos.DeleteImagePostgres(name)
+	if err != nil {
+		return err
+	}
+	go s.redisDB.Del(context.Background(), fmt.Sprintf("product%d", product_id))
+	return s.minioClient.RemoveOne("product", fmt.Sprintf("product%d/%s", product_id, name))
 
 }
 
-func (s *AdminService) RemoveImage(product_id int, name string)(error){
-	err := s.repos.DeleteImagePostgres(name)
-	if err != nil{
-		return err 
-	}
-	return s.minioClient.RemoveOne("product", fmt.Sprintf("product%d/%s", product_id, name))
-
+func (s *AdminService) UpdateProduct(product_id int, product_data productservice.AdminUpdateProductSerializer) error {
+	go s.redisDB.Del(context.Background(), fmt.Sprintf("product%d", product_id), "products")
+	return s.repos.UpdateProductPostgres(product_id, product_data)
 }
