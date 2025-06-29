@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package product_service;
 
-option go_package  = "grpc_product";
+option go_package  = "https://github.com/alexkhub/OnlineStoreGo/blob/main/protos/proto/product_service;gppc_product_service";
 
 service Comment{
     rpc GetUserData (CommentIdRequest) returns (UserDataResponse); 
