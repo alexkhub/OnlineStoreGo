@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package product_service;
+
+option go_package  = "grpc_product";
+
+service Comment{
+    rpc GetUserData (CommentIdRequest) returns (UserDataResponse); 
+}
+
+message CommentIdRequest {
+    repeated int64 id = 1;
+}
+
+message UserDataResponse {
+    repeated UserData data = 1;
+}
+
+message UserData {
+    int64 id = 1;
+    string full_name = 2; 
+    string image = 3;
+}
