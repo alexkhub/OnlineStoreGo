@@ -142,3 +142,7 @@ func (s *AdminService) UpdateProduct(product_id int, product_data productservice
 	go s.redisDB.Del(context.Background(), fmt.Sprintf("product%d", product_id), "products")
 	return s.repos.UpdateProductPostgres(product_id, product_data)
 }
+
+func (s *AdminService) RemoveComment(comment_id int) error{
+	return s.repos.RemoveCommentPostgres(comment_id)
+}

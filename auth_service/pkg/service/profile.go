@@ -5,21 +5,26 @@ import (
 	"auth_service/pkg/repository"
 	"bytes"
 	"context"
-	"github.com/google/uuid"
-	"github.com/minio/minio-go/v7"
+	"log"
 	"strings"
 	"time"
+
+	"github.com/IBM/sarama"
+	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 )
 
 type ProfileService struct {
-	repos repository.Profile
-	minIO *minio.Client
+	repos    repository.Profile
+	minIO    *minio.Client
+	producer sarama.SyncProducer
 }
 
-func NewProfileService(repos repository.Profile, minIO *minio.Client) *ProfileService {
+func NewProfileService(repos repository.Profile, minIO *minio.Client, producer sarama.SyncProducer) *ProfileService {
 	return &ProfileService{
-		repos: repos,
-		minIO: minIO,
+		repos:    repos,
+		minIO:    minIO,
+		producer: producer,
 	}
 }
 
@@ -55,5 +60,11 @@ func (s *ProfileService) ProfileUpdate(user_id int, user_data authservice.Profil
 }
 
 func (s *ProfileService) ProfileDelete(user_id int) error {
+	go func() {
+		err := SendBlockKafkaMessageV2(s.producer, user_id)
+		if err != nil {
+			log.Printf("Send Block V2 Kafka %s", err.Error())
+		}
+	}()
 	return s.repos.ProfileDeletePostgres(user_id)
 }

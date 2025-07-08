@@ -19,6 +19,10 @@ type getListProductResponse struct {
 	Data []productservice.ProductListSerailizer `json:"data"`
 }
 
+type getListCommentResponse struct {
+	Data []productservice.ListCommentSerializer `json:"data"`
+}
+
 func newErrorMessage(c *gin.Context, statusCode int, message string) {
 	log.Println(message)
 	c.AbortWithStatusJSON(statusCode, errorResponse{message})

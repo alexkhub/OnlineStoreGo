@@ -6,6 +6,7 @@ import (
 	"net/url"
 
 	"github.com/IBM/sarama"
+	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/comment"
 	"github.com/minio/minio-go/v7"
 )
 
@@ -13,6 +14,7 @@ const (
 	AuthTopic    = "auth_topic"
 	ConfirmTopic = "confirm_topic"
 	BlockTopic   = "block_topik"
+	BlockTopicV2 = "block_topik_v2"
 )
 
 type Authorization interface {
@@ -45,6 +47,10 @@ type JWTManager interface {
 	ParseRefreshToken(refreshToken string) (int, error)
 }
 
+type GRPC interface {
+	GetUserData(user_ids []int64) (*grpc_product_service.UserDataResponse, error)
+}
+
 type Deps struct {
 	Repos      *repository.Repository
 	JWTManager JWTManager
@@ -56,16 +62,15 @@ type Service struct {
 	Authorization
 	Profile
 	Admin
+	GRPC
 }
 
 func NewService(deps Deps) *Service {
-	new_auth_service := NewAuthService(deps.Repos.Authorization, deps.JWTManager, deps.Producer)
-	new_profile_service := NewProfileService(deps.Repos.Profile, deps.MinIO)
-	new_admin := NewAdminService(deps.Repos.Admin, deps.JWTManager, deps.Producer)
 
 	return &Service{
-		Authorization: new_auth_service,
-		Profile:       new_profile_service,
-		Admin:         new_admin,
+		Authorization: NewAuthService(deps.Repos.Authorization, deps.JWTManager, deps.Producer),
+		Profile:       NewProfileService(deps.Repos.Profile, deps.MinIO, deps.Producer),
+		Admin:         NewAdminService(deps.Repos.Admin, deps.JWTManager, deps.Producer),
+		GRPC:          NewGRPCService(deps.Repos.GRPC, deps.Repos.MinIO),
 	}
 }

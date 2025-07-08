@@ -185,3 +185,9 @@ func (r *AdminPostgres) UpdateProductPostgres(product_id int, product_data produ
 	return err
 
 }
+
+func (r *AdminPostgres) RemoveCommentPostgres( comment_id int) error {
+	query := fmt.Sprintf("delete from %s where id = $1;", CommentTable)
+	_, err := r.db.Exec(query, comment_id)
+	return err
+}

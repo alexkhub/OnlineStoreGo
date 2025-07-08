@@ -40,10 +40,24 @@ type Admin interface {
 	GetBlockDataPostgres(user_id int) (authservice.UserBlockResponseSerializer, error)
 }
 
+type GRPC interface {
+	GetUserDataPostgres(user_ids []int64) ([]authservice.UserDataSerializer, error)
+}
+
+type MinIO interface {
+	GetOne(bucketName, objectID string) (string, error)
+	GetMany(bucketName string, objectIDs []string) (map[string]string, error)
+	PresignedListObject(bucketName, prefix string, recursive bool) ([]string, error)
+	RemoveAllObjects(bucketName, prefix string, recursive bool)
+	RemoveOne(bucketName, objectID string) error
+}
+
 type Repository struct {
 	Authorization
 	Profile
 	Admin
+	GRPC
+	MinIO
 }
 
 type ReposDebs struct {
@@ -56,5 +70,7 @@ func NewRepository(debs ReposDebs) *Repository {
 		Authorization: NewAuthPostgres(debs.DB),
 		Profile:       NewProfilePostgres(debs.DB, debs.MinIO),
 		Admin:         NewAdminPostgres(debs.DB),
+		GRPC:          NewGRPCRepository(debs.DB),
+		MinIO:         NewMinioClient(debs.MinIO),
 	}
 }

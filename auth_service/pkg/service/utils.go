@@ -54,3 +54,19 @@ func SendBlockKafkaMessage(producer sarama.SyncProducer, data authservice.UserBl
 	return err
 
 }
+
+func SendBlockKafkaMessageV2(producer sarama.SyncProducer, user_id int) error {
+	requestID := uuid.New().String()
+	userJson, err := json.Marshal(user_id)
+	if err != nil {
+		return err
+	}
+	msg := &sarama.ProducerMessage{
+		Topic: BlockTopicV2,
+		Key:   sarama.StringEncoder(requestID),
+		Value: sarama.StringEncoder(userJson),
+	}
+	_, _, err = producer.SendMessage(msg)
+	return err
+
+}

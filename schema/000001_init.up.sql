@@ -23,7 +23,7 @@ Create Table Users(
 
 create table Refresh(
     id SERIAL primary key ,
-    user_id  int REFERENCES Users(id),
+    user_id  int REFERENCES Users(id) on delete set NULL,
     refresh_token varchar(250),
     expiration_time timestamptz DEFAULT now() 
 );

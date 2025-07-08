@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"io"
-	"log"
 	"net/http"
 	productservice "product_service"
 	"strconv"
@@ -191,7 +190,6 @@ func (h *Handler) UpdateProductHandler(c *gin.Context) {
 		return
 	}
 
-	log.Println(input.Category)
 
 	err = h.services.UpdateProduct(id, input)
 	if err != nil {
@@ -208,4 +206,21 @@ func (h *Handler) UpdateProductHandler(c *gin.Context) {
 
 	c.JSON(http.StatusOK, data)
 
+}
+
+func (h *Handler) AdminRemoveCommentHandler(c *gin.Context) {
+	IsAdminPermission(c)
+
+	comment, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		newErrorMessage(c, http.StatusNotFound, err.Error())
+		return
+	}
+
+	err = h.services.Admin.RemoveComment(comment)
+	if err != nil {
+		newErrorMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusNoContent, nil)
 }

@@ -39,6 +39,14 @@ func (h *Handler) InitRouter() *gin.Engine {
 			admin.DELETE("/product_detail/:id", h.ProductDeleteHandler)
 			admin.DELETE("/delete_image/:product_id/:name", h.RemoveImageHandler)
 
+			admin.DELETE("/comment_remove/:id", h.AdminRemoveCommentHandler)
+
+		}
+		comment := api.Group("/comment")
+		{
+			comment.POST("/create_comment/:product_id", h.parseAuthHeader, h.CreateCommentHandler)
+			comment.GET("/comment_list/:product_id", h.CommentListHandler)
+			comment.DELETE("/comment_remove/:id", h.parseAuthHeader, h.CommentRemoveHandler)
 		}
 
 	}

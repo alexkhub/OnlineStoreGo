@@ -75,7 +75,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Failed to consume partition: %v", err)
 	}
-	defer partConsumer.Close()
+	defer partConsumerBlock.Close()
 
 	my_handlers := handlers.NewHandler(services)
 

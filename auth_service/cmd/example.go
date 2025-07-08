@@ -1,9 +1,6 @@
 package main
 
 import (
-	// authservice "auth_service"
-	// "context"
-
 	authservice "auth_service"
 	"context"
 	"encoding/json"
@@ -15,6 +12,7 @@ import (
 	"syscall"
 
 	"auth_service/configs"
+	grpcapp "auth_service/pkg/grpc_app"
 	"auth_service/pkg/handlers"
 	"auth_service/pkg/repository"
 	"auth_service/pkg/service"
@@ -30,6 +28,7 @@ import (
 func main() {
 
 	configs.LoadConfig()
+
 	singConfig := viper.GetStringMapString("singing_keys")
 
 	minioConfig := viper.GetStringMapString("minio")
@@ -93,16 +92,21 @@ func main() {
 
 	my_handlers := handlers.NewHandler(services, jwt_manager)
 
+	gRPHanler := grpcapp.NewGRPCApp(9999, services.GRPC)
+
 	go func() {
 		if err := my_handlers.InitRouter().Run(fmt.Sprintf(":%d", viper.GetInt("app_host"))); err != nil {
 			log.Fatalf("server didn't start")
 		}
 	}()
+	go func() {
+		gRPHanler.Run()
+
+	}()
 
 	go func() {
 		for {
 			select {
-			// (обработка входящего сообщения и отправка ответа в Kafka)
 			case msg, ok := <-partConsumer.Messages():
 				if !ok {
 					log.Println("channel closed, exiting")
@@ -118,7 +122,7 @@ func main() {
 				err = services.ActivateUser(receivedMessage.Id)
 
 				if err != nil {
-					log.Printf("Activate user id=%s error: %s", receivedMessage.Id, err)
+					log.Printf("Activate user id=%d error: %s", receivedMessage.Id, err)
 				}
 				log.Printf("Received message: %+v\n", receivedMessage)
 			}
@@ -130,7 +134,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
-
+	gRPHanler.Stop()
 	log.Println("AuthService Shutting Down")
 
 	if err := db.Close(); err != nil {

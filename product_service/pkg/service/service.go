@@ -4,12 +4,14 @@ import (
 	productservice "product_service"
 	"product_service/pkg/repository"
 
+	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/comment"
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
 )
 
 const (
 	RedisCategory = "cache_category"
+	BlockTopic    = "block_topik_v2"
 )
 
 type Admin interface {
@@ -20,6 +22,7 @@ type Admin interface {
 	AdminProductDetail(id int) (productservice.AdminProductDetailSerailizer, error)
 	RemoveImage(product_id int, name string) error
 	UpdateProduct(product_id int, product_data productservice.AdminUpdateProductSerializer) error
+	RemoveComment(comment_id int) error
 }
 
 type Product interface {
@@ -29,6 +32,13 @@ type Product interface {
 	ProductDetail(id int) (productservice.ProductDetailSerailizer, error)
 }
 
+type Comment interface {
+	CreateComment(data productservice.CreateCommentSerializer, product_id, user_id int) (int, error)
+	RemoveUserComment(user_id int) error
+	CommentList(product_id int) ([]productservice.ListCommentSerializer, error)
+	RemoveComment(comment_id int, user_id int) error
+}
+
 type JWTManager interface {
 	Parse(accessToken string) (productservice.AuthMiddlewareSerializer, error)
 }
@@ -36,18 +46,21 @@ type JWTManager interface {
 type Service struct {
 	Admin
 	Product
+	Comment
 }
 
 type Deps struct {
-	Repos      *repository.Repository
-	JWTManager JWTManager
-	MinIO      *minio.Client
-	Redis      *redis.Client
+	Repos       *repository.Repository
+	JWTManager  JWTManager
+	MinIO       *minio.Client
+	Redis       *redis.Client
+	GRPCComment grpc_product_service.CommentClient
 }
 
 func NewService(deps Deps) *Service {
 	return &Service{
 		Admin:   NewAdminService(deps.Repos.Admin, deps.MinIO, deps.Repos.MinIO, deps.Redis),
 		Product: MewProductService(deps.Repos.Product, deps.Redis, deps.Repos.MinIO),
+		Comment: NewCommentService(deps.Repos.Comment, deps.Redis, deps.GRPCComment),
 	}
 }

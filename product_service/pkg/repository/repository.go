@@ -13,6 +13,7 @@ const (
 	ProductTable      = "product"
 	ImageTable        = "image"
 	ProductImageTable = "product_image"
+	CommentTable      = "comment"
 	RedisCategory     = "cache_category"
 )
 
@@ -26,6 +27,8 @@ type Admin interface {
 	GetImagesPostgres(product_id int) ([]productservice.ImageSerializer, error)
 	DeleteImagePostgres(name string) error
 	UpdateProductPostgres(product_id int, product_data productservice.AdminUpdateProductSerializer) error
+
+	RemoveCommentPostgres( comment_id int) error 
 }
 
 type Product interface {
@@ -43,10 +46,20 @@ type MinIO interface {
 	RemoveOne(bucketName, objectID string) error
 }
 
+type Comment interface {
+	CreateCommentPostgres(data productservice.CreateCommentSerializer, product_id, user_id int) (int, error)
+	RemoveUserCommentPostgres(user_id int) error
+	CommentListPostgres(product_id int) ([]productservice.ListCommentPostgresSerializer, error)
+	RemoveCommentPostgres(comment_id int, user_id int) error
+
+}
+
+
 type Repository struct {
 	Admin
 	Product
 	MinIO
+	Comment
 }
 
 type ReposDeps struct {
@@ -60,5 +73,6 @@ func NewRepository(deps ReposDeps) *Repository {
 		Admin:   NewAdminPostgres(deps.DB, deps.Redis, deps.MinIO),
 		Product: NewProductPostgres(deps.DB, deps.Redis, deps.MinIO),
 		MinIO:   NewMinioClient(deps.MinIO),
+		Comment: NewCommentPostgres(deps.DB),
 	}
 }

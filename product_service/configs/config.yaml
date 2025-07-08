@@ -19,4 +19,8 @@ redis:
 
 singing_key: fdljdcsdcsv232e3cdjif
 
+kafka:
+  host: kafka
+  port: 9092
+
 app_host: 8083

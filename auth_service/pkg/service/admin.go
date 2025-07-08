@@ -41,12 +41,18 @@ func (s *AdminService) UserBlock(user_id int) error {
 	if err != nil {
 		return err
 	}
-	go func() {
-		err = SendBlockKafkaMessage(s.producer, data)
+	go func(producer sarama.SyncProducer, user_id int, data authservice.UserBlockResponseSerializer) {
+		err := SendBlockKafkaMessage(producer, data)
 		if err != nil {
 			log.Printf("Block Kafka %s", err.Error())
 		}
-	}()
+
+		err = SendBlockKafkaMessageV2(producer, user_id)
+		if err != nil {
+			log.Printf("Block Kafka V2 %s", err.Error())
+		}
+
+	}(s.producer, user_id, data)
 	return nil
 }
 
