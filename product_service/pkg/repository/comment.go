@@ -17,10 +17,9 @@ func NewCommentPostgres(db *sqlx.DB) *CommentPostgres {
 
 func (r *CommentPostgres) CreateCommentPostgres(data productservice.CreateCommentSerializer, product_id, user_id int) (int, error) {
 	var id int
-	query := fmt.Sprintf("insert into %s (title, message, raiting, user_id, product) values ($1, $2, $3, $4, $5) returning id;", CommentTable)
-	row := r.db.QueryRow(query, data.Title, data.Message, data.Raiting, user_id, product_id)
+	query := fmt.Sprintf("insert into %s (title, message, rating, user_id, product) values ($1, $2, $3, $4, $5) returning id;", CommentTable)
+	row := r.db.QueryRow(query, data.Title, data.Message, data.Rating, user_id, product_id)
 	if err := row.Scan(&id); err != nil {
-
 		return 0, err
 	}
 	return id, nil
@@ -35,7 +34,7 @@ func (r *CommentPostgres) RemoveUserCommentPostgres(user_id int) error {
 func (r *CommentPostgres) CommentListPostgres(product_id int) ([]productservice.ListCommentPostgresSerializer, error){
 	var commentList []productservice.ListCommentPostgresSerializer
 
-	query := fmt.Sprintf("select id, title, user_id,  message, raiting, create_at from %s where product = $1 order by create_at DESC", CommentTable)
+	query := fmt.Sprintf("select id, title, user_id,  message, rating, create_at from %s where product = $1 order by create_at DESC", CommentTable)
 
 	err := r.db.Select(&commentList, query, product_id)
 	if err != nil{

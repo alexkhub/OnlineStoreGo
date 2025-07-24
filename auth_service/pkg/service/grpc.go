@@ -46,5 +46,4 @@ func (s *GRPCService) GetUserData(user_ids []int64) (*grpc_product_service.UserD
 	responce.Data = responce_user_data
 	return &responce, nil
 
-	return &responce, nil
 }

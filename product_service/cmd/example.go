@@ -72,7 +72,7 @@ func main() {
 	}
 	defer partConsumerBlock.Close()
 
-	grpcClient, err := grpcapp.NewGRPCClient(9999)
+	grpcClient, err := grpcapp.NewGRPCClient("auth_service", 9999)
 
 	if err != nil {
 		log.Fatalf("gRPC connect error: %v", err)
@@ -80,19 +80,24 @@ func main() {
 
 	repos := repository.NewRepository(repository.ReposDeps{DB: db, Redis: redisdb, MinIO: minios3})
 	jwt_manager := service.NewManager(viper.GetString("singing_key"))
-	services := service.NewService(service.Deps{Repos: repos, JWTManager: jwt_manager, MinIO: minios3, Redis: redisdb, GRPCComment: grpcClient})
+	services := service.NewService(service.Deps{Repos: repos, MinIO: minios3, Redis: redisdb, GRPCComment: grpcClient})
 	my_handlers := handlers.NewHandler(services, jwt_manager)
+	gRPHanler := grpcapp.NewGRPCApp(9999, services.GRPC)
 
 	go func() {
-		if err := my_handlers.InitRouter().Run(":8083"); err != nil {
+		if err := my_handlers.InitRouter().Run(fmt.Sprintf(":%s", viper.GetString("app_host"))); err != nil {
 			log.Fatalf("server didn't start")
 		}
+	}()
+
+	go func(){
+		gRPHanler.Run()
 	}()
 
 	log.Println("ProductService Started")
 
 	go func() {
-		for {
+		for{
 			select {
 			case msg, ok := <-partConsumerBlock.Messages():
 				if !ok {
@@ -114,7 +119,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
-
+	gRPHanler.Stop()
 	log.Println("ProductService Shutting Down")
 
 	if err := db.Close(); err != nil {

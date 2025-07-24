@@ -20,10 +20,10 @@ func NewCommentGRPCServer(gRPC *grpc.Server, service service.GRPC) {
 	grpc_product_service.RegisterCommentServer(gRPC, &CommentGRPCServer{service: service})
 }
 
-func (s *CommentGRPCServer) GetUserData(ctx context.Context, request *grpc_product_service.CommentIdRequest) (*grpc_product_service.UserDataResponse, error) {
+func (g *CommentGRPCServer) GetUserData(ctx context.Context, request *grpc_product_service.CommentIdRequest) (*grpc_product_service.UserDataResponse, error) {
 	if len(request.Id) == 0 {
 		return nil, status.Error(codes.InvalidArgument, "Id list is empty")
 	}
 
-	return s.service.GetUserData(request.GetId())
+	return g.service.GetUserData(request.GetId())
 }

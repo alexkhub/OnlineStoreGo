@@ -63,8 +63,8 @@ func (s *CommentService) CommentList(product_id int) ([]productservice.ListComme
 		commentList = append(commentList, productservice.ListCommentSerializer{
 			Id: value.Id,
 			Title: value.Title,
-			Raiting: value.Raiting,
-			User:  productservice.ComentUserDataSerializer{
+			Rating: value.Rating,
+			User:  productservice.CommentUserDataSerializer{
 				Id: user.Id,
 				FullName: user.FullName,
 				Image: user.Image,

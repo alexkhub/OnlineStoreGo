@@ -1,8 +1,10 @@
 package repository
 
 import (
+	"context"
 	productservice "product_service"
 
+	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 	"github.com/jmoiron/sqlx"
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
@@ -54,12 +56,18 @@ type Comment interface {
 
 }
 
+type GRPC interface{
+	GetProductCreateCartPostgres(ctx context.Context, productId int64)(*grpc_order_service.ProductDataCreateCartResponse,  error)
+	GetProductPostgres(ctx context.Context, productIds []int64)([]productservice.ProductGRPCSerializer, error)
+}
+
 
 type Repository struct {
 	Admin
 	Product
 	MinIO
 	Comment
+	GRPC
 }
 
 type ReposDeps struct {
@@ -74,5 +82,6 @@ func NewRepository(deps ReposDeps) *Repository {
 		Product: NewProductPostgres(deps.DB, deps.Redis, deps.MinIO),
 		MinIO:   NewMinioClient(deps.MinIO),
 		Comment: NewCommentPostgres(deps.DB),
+		GRPC: NewGRPCRepository(deps.DB),
 	}
 }

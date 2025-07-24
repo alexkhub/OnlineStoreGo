@@ -1,0 +1,18 @@
+db:
+  host: store_db
+  port: 5432
+  user: root
+  password: alex0000
+  dbname: store_db
+  sslmode: disable
+
+redis:
+  host: redis
+  port: 6379
+  password: alex0000
+
+singing_key: fdljdcsdcsv232e3cdjif
+
+
+
+app_host: 8084

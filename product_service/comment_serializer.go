@@ -9,10 +9,10 @@ import (
 type CreateCommentSerializer struct {
 	Title   string `json:"title" binding:"required" valid:"-"`
 	Message string `json:"message" valid:"-"`
-	Raiting int    `json:"raiting"  binding:"required" valid:"-"`
+	Rating int    `json:"rating"  binding:"required" valid:"-"`
 }
 
-type ComentUserDataSerializer struct {
+type CommentUserDataSerializer struct {
 	Id            int64 `json:"id" `
 	FullName      string `json:"full_name"`
 	Image         string `json:"image"` 
@@ -22,7 +22,7 @@ type ComentUserDataSerializer struct {
 type ListCommentPostgresSerializer struct {
 	Id int64 `json:"id" db:"id"`
 	Title string  `json:"title" db:"title"`
-	Raiting int    `json:"raiting" db:"raiting"`
+	Rating int    `json:"raiting" db:"rating"`
 	User int `json:"user" db:"user_id"`
 	Message null.String `json:"message" db:"message"`
 	CreateAt time.Time `json:"create_at" db:"create_at"`
@@ -31,8 +31,8 @@ type ListCommentPostgresSerializer struct {
 type ListCommentSerializer struct {
 	Id int64 `json:"id"`
 	Title string  `json:"title" `
-	Raiting int    `json:"raiting"`
-	User ComentUserDataSerializer `json:"user"`
+	Rating int    `json:"raiting"`
+	User CommentUserDataSerializer `json:"user"`
 	CreateAt time.Time `json:"create_at" `
 	Message null.String `json:"message" db:"message"`
 }

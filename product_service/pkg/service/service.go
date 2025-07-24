@@ -1,10 +1,12 @@
 package service
 
 import (
+	"context"
 	productservice "product_service"
 	"product_service/pkg/repository"
 
 	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/comment"
+	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
 )
@@ -39,6 +41,12 @@ type Comment interface {
 	RemoveComment(comment_id int, user_id int) error
 }
 
+type GRPC interface{
+	GetProductCreateCart(ctx context.Context, productId int64)(*grpc_order_service.ProductDataCreateCartResponse, error)
+	GetProduct(ctx context.Context, productIds []int64)(*grpc_order_service.ProductDataResponse, error)
+}
+
+
 type JWTManager interface {
 	Parse(accessToken string) (productservice.AuthMiddlewareSerializer, error)
 }
@@ -47,14 +55,17 @@ type Service struct {
 	Admin
 	Product
 	Comment
+	GRPC
+
 }
+
 
 type Deps struct {
 	Repos       *repository.Repository
-	JWTManager  JWTManager
 	MinIO       *minio.Client
 	Redis       *redis.Client
 	GRPCComment grpc_product_service.CommentClient
+	
 }
 
 func NewService(deps Deps) *Service {
@@ -62,5 +73,7 @@ func NewService(deps Deps) *Service {
 		Admin:   NewAdminService(deps.Repos.Admin, deps.MinIO, deps.Repos.MinIO, deps.Redis),
 		Product: MewProductService(deps.Repos.Product, deps.Redis, deps.Repos.MinIO),
 		Comment: NewCommentService(deps.Repos.Comment, deps.Redis, deps.GRPCComment),
+		GRPC: NewGRPCService(deps.Repos.GRPC, deps.Repos.MinIO),
+
 	}
 }

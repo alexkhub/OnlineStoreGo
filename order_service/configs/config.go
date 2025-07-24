@@ -8,7 +8,6 @@ import (
 
 type Config struct {
 	DbConfig    `mapstructure:"db"`
-	MinioConfig `mapstructure:"minio"`
 	RedisConfig `mapstructure:"redis"`
 	AppHost     string `mapstructure:"app_host"`
 	SingingKey  string `mapstructure:"singing_key"`
@@ -22,19 +21,14 @@ type DbConfig struct {
 	Dbname   string `mapstructure:"dbname"`
 	Sslmode  string `mapstructure:"sslmode"`
 }
+
 type RedisConfig struct {
 	Host     string `mapstructure:"host"`
 	Port     string `mapstructure:"port"`
 	Password string `mapstructure:"password"`
 }
 
-type MinioConfig struct {
-	Host            string `mapstructure:"host"`
-	Port            string `mapstructure:"port"`
-	AccessKeyID     string `mapstructure:"accessKeyID"`
-	SecretAccessKey string `mapstructure:"secretAccessKey"`
-	UseSSL          string `mapstructure:"useSSL"`
-}
+
 
 var AppConfig Config
 
