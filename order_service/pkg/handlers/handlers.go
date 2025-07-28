@@ -26,6 +26,9 @@ func (h *Handler) InitRouter() *gin.Engine {
 		{
 			cart.GET("/my_cart", h.GetMyCartHandler)
 			cart.POST("/add_product", h.AddProductHandler)
+			cart.PATCH("/update_my_cart/:id", h.UpdateCartHandler)
+			cart.DELETE("/clean_cart", h.CleanCartHandler)
+			cart.DELETE("/delete_cart_point/:id", h.RemoveCartPointHandler)
 		}
 			
 	}

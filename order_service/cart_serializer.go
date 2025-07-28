@@ -24,11 +24,13 @@ type CartSerializer struct {
 	Id int64 `json:"id" db:"id"`
 	Product CartProductSerializer `json:"product"`
 	Amount  int64 `json:"amount" db:"amount"`
-	
-
 }
 
 
 type CreateCartSerializer struct {
 	Product int64 `json:"product"`
+}
+
+type UpdateCartSerializer struct{
+	Amount int `json:"amount" binding:"required" valid:"-"`
 }

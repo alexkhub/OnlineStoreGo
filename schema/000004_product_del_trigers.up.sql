@@ -2,7 +2,7 @@ CREATE OR REPLACE FUNCTION del_images()
 RETURNS TRIGGER AS $$
 BEGIN
     delete from image where id in (select image from product_image where product=OLD.id);
-    RETURN OLD;
+    RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 

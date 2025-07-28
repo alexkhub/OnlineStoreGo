@@ -79,3 +79,19 @@ func (s *CartService) CreateCart(user_id int, product_id int64)(orderservice.Car
 
 	return cartData, nil
 }
+
+func (s *CartService) UserCartPermission(user_id, cart_id int ) bool{
+	return s.repos.UserCartPermissionPostgres(user_id, cart_id)
+}
+
+func (s *CartService) UpdateCart(cart_id, amount int) error{
+	return s.repos.UpdateCartPostgres(cart_id, amount)
+}
+
+func (s *CartService) CleanCart(user_id int) error{
+	return s.repos.CleanCartPostgres(user_id)
+}
+
+func (s *CartService) RemoveCartPoint(cart_id int) error{
+	return s.repos.RemoveCartPointPostgres(cart_id)
+}

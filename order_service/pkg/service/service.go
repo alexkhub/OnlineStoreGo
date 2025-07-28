@@ -12,6 +12,11 @@ import (
 type Cart interface{
 	CartList(user_id int)([]orderservice.CartSerializer, error)
 	CreateCart(user_id int, product_id int64)(orderservice.CartSerializer, error)
+	UserCartPermission(user_id, cart_id int ) bool
+	UpdateCart(cart_id, amount int) error
+	CleanCart(user_id int) error
+	RemoveCartPoint(cart_id int) error
+	
 }
 
 type Order interface{
