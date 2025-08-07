@@ -59,6 +59,9 @@ type Comment interface {
 type GRPC interface{
 	GetProductCreateCartPostgres(ctx context.Context, productId int64)(*grpc_order_service.ProductDataCreateCartResponse,  error)
 	GetProductPostgres(ctx context.Context, productIds []int64)([]productservice.ProductGRPCSerializer, error)
+	GetProductPricePostgres(ctx context.Context, productIds []int64) ([]productservice.ProductPriceGRPCSerializer, error)
+	GetProductNamePostgres(ctx context.Context, productIds []int64) ([]productservice.ProductNameGRPCSerializer, error)
+	
 }
 
 

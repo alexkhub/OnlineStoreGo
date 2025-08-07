@@ -44,7 +44,29 @@ func (r *GRPCRepository) GetProductPostgres(ctx context.Context, productIds []in
 	}
 	return products, nil
 
-	
+}
 
+func (r *GRPCRepository) GetProductPricePostgres(ctx context.Context, productIds []int64) ([]productservice.ProductPriceGRPCSerializer, error){
+	var products []productservice.ProductPriceGRPCSerializer
+
+	query := fmt.Sprintf("select id, price from %s where id = any($1) order by id;", ProductTable)
+	
+	if err := r.db.Select(&products, query, pq.Array(productIds)); err!= nil{
+		return nil, err
+	}
+	return products, nil
+
+}
+
+
+func (r *GRPCRepository) GetProductNamePostgres(ctx context.Context, productIds []int64) ([]productservice.ProductNameGRPCSerializer, error){
+	var products []productservice.ProductNameGRPCSerializer
+
+	query := fmt.Sprintf("select id, name from %s where id = any($1);", ProductTable)
+	
+	if err := r.db.Select(&products, query, pq.Array(productIds)); err!= nil{
+		return nil, err
+	}
+	return products, nil
 
 }

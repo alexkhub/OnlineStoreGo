@@ -4,7 +4,7 @@ import (
 	"context"
 	productservice "product_service"
 	"product_service/pkg/repository"
-	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/comment"
+	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/product_service"
 	"github.com/redis/go-redis/v9"
 )
 

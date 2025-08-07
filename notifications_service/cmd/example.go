@@ -12,6 +12,7 @@ import (
 	"syscall"
 
 	"notifications_service/configs"
+	grpcapp "notifications_service/grpc_app"
 	"notifications_service/pkg/handlers"
 	"notifications_service/pkg/repository"
 	"notifications_service/pkg/service"
@@ -57,10 +58,16 @@ func main() {
 	}
 	defer consumer.Close()
 
+	gRPCClient, err := grpcapp.NewGRPCClient("auth_service", 9999)
+
+	if err != nil {
+		log.Fatalf("gRPC connect error: %v", err)
+	}
+
 	services := service.NewService(service.Deps{
 		Repos:    repos,
-		Consumer: consumer,
 		Producer: producer,
+		GRPCAuth: gRPCClient,
 		From:     email_config["from"],
 		Password: email_config["password"],
 	})
@@ -77,6 +84,12 @@ func main() {
 	}
 	defer partConsumerBlock.Close()
 
+	partConsumerCreateOrder, err := consumer.ConsumePartition(service.CreateOrderTopik, 0, sarama.OffsetNewest)
+	if err != nil {
+		log.Fatalf("Failed to consume partition: %v", err)
+	}
+	defer partConsumerCreateOrder.Close()
+
 	my_handlers := handlers.NewHandler(services)
 
 	go func() {
@@ -85,15 +98,13 @@ func main() {
 		}
 	}()
 	go func() {
-		for {
+		for{
 			select {
-			// (обработка входящего сообщения и отправка ответа в Kafka)
 			case msg, ok := <-partConsumer.Messages():
 				if !ok {
 					log.Println("Channel closed, exiting")
 					return
 				}
-				// Десериализация входящего сообщения из JSON
 				var receivedMessage notificationsservice.AuthRegistrationResponseSerializer
 				err := json.Unmarshal(msg.Value, &receivedMessage)
 
@@ -105,10 +116,18 @@ func main() {
 				message, err := services.CreateVerifyLink(receivedMessage.Id)
 
 				if err != nil {
-					log.Printf("Create Verify link: %s", err)
+					log.Printf("error create verify link: %v", err)
+					continue
 				}
 
-				services.SendVerifyEmail(receivedMessage.Email, "Verify Email", message)
+				err = services.SendVerifyEmail(receivedMessage.Email, "Verify Email", message)
+
+				if err != nil {
+					log.Printf("error send verify: %v", err)
+				}
+				log.Println("send verify")
+
+
 
 			case msg, ok := <-partConsumerBlock.Messages():
 				if !ok {
@@ -122,8 +141,35 @@ func main() {
 					log.Printf("Error unmarshaling JSON: %s", err)
 					continue
 				}
-				services.SendBlockEmail(receivedMessage)
+				err = services.SendBlockEmail(receivedMessage)
+				if err != nil{
+					log.Printf("error sevd block: %v", err)
+				}
+				log.Println("Block email send")
+
+			case msg, ok := <- partConsumerCreateOrder.Messages():
+				log.Println(111111)
+				if !ok {
+					log.Println("Channel closed, exiting")
+					return
+				}
+				var receivedMessage notificationsservice.CreateOrderKafkaMessage
+				err := json.Unmarshal(msg.Value, &receivedMessage)
+
+				if err != nil {
+					log.Printf("Error unmarshaling JSON: %s", err)
+					continue
+				}
+				err = services.Order.SendQRForClient(receivedMessage)
+				if err != nil {
+					log.Printf("Error unmarshaling JSON: %s", err)
+					continue
+				}
+				log.Println("Order QR send")
+
 			}
+
+		
 
 		}
 	}()
@@ -133,6 +179,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
+	
 
 	log.Print("NotificationService Shutting Down")
 

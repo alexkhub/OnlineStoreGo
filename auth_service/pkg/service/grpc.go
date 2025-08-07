@@ -2,7 +2,9 @@ package service
 
 import (
 	"auth_service/pkg/repository"
-	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/comment"
+
+	grpc_notifications_service "github.com/alexkhub/OnlineStoreProto/gen/go/notifications_service"
+	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/product_service"
 )
 
 type GRPCService struct {
@@ -46,4 +48,13 @@ func (s *GRPCService) GetUserData(user_ids []int64) (*grpc_product_service.UserD
 	responce.Data = responce_user_data
 	return &responce, nil
 
+}
+
+
+func (s *GRPCService) GetUserEmail(id int64)(*grpc_notifications_service.UserEmailResponse, error){
+	email, err := s.repos.GetUserEmailPostgres(id)
+	if err != nil {
+		return nil, err
+	}
+	return &grpc_notifications_service.UserEmailResponse{Email: email}, nil
 }

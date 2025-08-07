@@ -8,8 +8,8 @@ create table cart (
 
 create  table payment_method (
     id SERIAL primary key,
-    Name varchar(50),
-    Description text
+    name varchar(50),
+    description text
 );
 
 create table user_order ( 

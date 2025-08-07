@@ -25,6 +25,8 @@ import (
 
 func main() {
 	configs.LoadConfig()
+	sarama_config := sarama.NewConfig()
+	sarama_config.Consumer.Return.Errors = true
 
 	minioConfig := viper.GetStringMapString("minio")
 	minio_conf_port, _ := strconv.Atoi(minioConfig["port"])
@@ -62,9 +64,12 @@ func main() {
 		log.Println(err)
 	}
 
-	sarama_config := sarama.NewConfig()
-
-	sarama_config.Consumer.Return.Errors = true
+	
+	producer, err := sarama.NewSyncProducer([]string{fmt.Sprintf("%s:%d", kafkaConfig["host"], kafka_conf_port)}, nil)
+	if err != nil {
+		log.Fatalf("failed to create producer: %v", err)
+	}
+	defer producer.Close()
 
 	partConsumerBlock, err := consumer.ConsumePartition(service.BlockTopic, 0, sarama.OffsetNewest)
 	if err != nil {
@@ -80,7 +85,7 @@ func main() {
 
 	repos := repository.NewRepository(repository.ReposDeps{DB: db, Redis: redisdb, MinIO: minios3})
 	jwt_manager := service.NewManager(viper.GetString("singing_key"))
-	services := service.NewService(service.Deps{Repos: repos, MinIO: minios3, Redis: redisdb, GRPCComment: grpcClient})
+	services := service.NewService(service.Deps{Repos: repos, MinIO: minios3, Redis: redisdb, GRPCComment: grpcClient, Producer: producer})
 	my_handlers := handlers.NewHandler(services, jwt_manager)
 	gRPHanler := grpcapp.NewGRPCApp(9999, services.GRPC)
 

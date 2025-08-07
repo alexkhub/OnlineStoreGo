@@ -9,7 +9,7 @@ type AuthRegistrationResponseSerializer struct {
 	Email string `json:"email" binding:"required" valid:"email"`
 }
 
-type ChechUUIDData struct {
+type CheckUUIDData struct {
 	UserId     int       `db:"user_id"`
 	CreateTime time.Time `db:"datetime_create"`
 }

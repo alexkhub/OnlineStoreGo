@@ -2,14 +2,17 @@ package service
 
 import (
 	"bytes"
+
 	"context"
 	"errors"
 	"fmt"
+	"log"
 
 	productservice "product_service"
 	"product_service/pkg/repository"
 	"sync"
 
+	"github.com/IBM/sarama"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
@@ -20,10 +23,11 @@ type AdminService struct {
 	minIO       *minio.Client
 	minioClient repository.MinIO
 	redisDB     *redis.Client
+	producer   	sarama.SyncProducer
 }
 
-func NewAdminService(repos repository.Admin, minIO *minio.Client, minioClient repository.MinIO, redisDB *redis.Client) *AdminService {
-	return &AdminService{repos: repos, minIO: minIO, minioClient: minioClient, redisDB: redisDB}
+func NewAdminService(repos repository.Admin, minIO *minio.Client, minioClient repository.MinIO, redisDB *redis.Client, producer sarama.SyncProducer) *AdminService {
+	return &AdminService{repos: repos, minIO: minIO, minioClient: minioClient, redisDB: redisDB, producer: producer}
 }
 
 func (s *AdminService) CreateCategory(data productservice.CategorySerializer) (int, error) {
@@ -88,9 +92,17 @@ func (s *AdminService) AddImage(product int, data map[string]productservice.File
 
 }
 
-func (s *AdminService) ProductDelete(product_id int) error {
+func (s *AdminService) ProductDelete( product_id int) error {
 	go s.minioClient.RemoveAllObjects("product", fmt.Sprintf("product%d", product_id), true)
 	go s.redisDB.Del(context.Background(), fmt.Sprintf("product%d", product_id), "products")
+
+	go func(producer sarama.SyncProducer, product_id int){
+		err := SendDeleteProductKafkaMessage(producer, product_id)
+		if err != nil{
+			log.Printf("send delete product error: %s", err.Error())
+		}
+	}(s.producer, product_id)
+
 	return s.repos.DeleteProductPostgres(product_id)
 }
 

@@ -22,3 +22,7 @@ func newErrorMessage(c *gin.Context, statusCode int, message string) {
 type getListCartResponse struct {
 	Data []orderservice.CartSerializer `json:"data"`
 }
+type getListPaymentMethodeResponse struct {
+	Data []orderservice.PaymentMethodeSerializer `json:"data"`
+
+}

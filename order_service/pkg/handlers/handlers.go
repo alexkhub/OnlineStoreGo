@@ -30,6 +30,11 @@ func (h *Handler) InitRouter() *gin.Engine {
 			cart.DELETE("/clean_cart", h.CleanCartHandler)
 			cart.DELETE("/delete_cart_point/:id", h.RemoveCartPointHandler)
 		}
+		order := api.Group("/order", h.parseAuthHeader)
+		{
+			order.GET("/payment_methode", h.PaymentMethodeListHandler)
+			order.POST("/create_order", h.CreateOrderHandler)
+		}
 			
 	}
 	

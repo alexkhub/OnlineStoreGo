@@ -19,15 +19,13 @@ func (h *Handler) RegistrationHandler(c *gin.Context) {
 	var input authservice.AuthRegistrationSerializer
 
 	if err := c.BindJSON(&input); err != nil {
-
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
-
 		return
 	}
+	
 	_, err := v.ValidateStruct(input)
 	if err != nil {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
-
 		return
 	}
 
@@ -99,7 +97,7 @@ func (h *Handler) LogoutHandler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-
+	
 	err = h.services.DeleteRefreshJWTToken(input.Refresh)
 
 	if err != nil {

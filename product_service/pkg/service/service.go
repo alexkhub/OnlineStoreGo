@@ -5,7 +5,8 @@ import (
 	productservice "product_service"
 	"product_service/pkg/repository"
 
-	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/comment"
+	"github.com/IBM/sarama"
+	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/product_service"
 	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 	"github.com/minio/minio-go/v7"
 	"github.com/redis/go-redis/v9"
@@ -14,6 +15,7 @@ import (
 const (
 	RedisCategory = "cache_category"
 	BlockTopic    = "block_topik_v2"
+	DeleteProductTopik = "delete_prod_topik"
 )
 
 type Admin interface {
@@ -44,6 +46,9 @@ type Comment interface {
 type GRPC interface{
 	GetProductCreateCart(ctx context.Context, productId int64)(*grpc_order_service.ProductDataCreateCartResponse, error)
 	GetProduct(ctx context.Context, productIds []int64)(*grpc_order_service.ProductDataResponse, error)
+	GetProductPrice(ctx context.Context, productIds []int64) (*grpc_order_service.ProductPriceResponse, error) 
+	GetProductName(ctx context.Context, productIds []int64) (*grpc_order_service.ProductNameResponse, error)
+
 }
 
 
@@ -56,7 +61,6 @@ type Service struct {
 	Product
 	Comment
 	GRPC
-
 }
 
 
@@ -65,12 +69,13 @@ type Deps struct {
 	MinIO       *minio.Client
 	Redis       *redis.Client
 	GRPCComment grpc_product_service.CommentClient
+	Producer   sarama.SyncProducer
 	
 }
 
 func NewService(deps Deps) *Service {
 	return &Service{
-		Admin:   NewAdminService(deps.Repos.Admin, deps.MinIO, deps.Repos.MinIO, deps.Redis),
+		Admin:   NewAdminService(deps.Repos.Admin, deps.MinIO, deps.Repos.MinIO, deps.Redis, deps.Producer),
 		Product: MewProductService(deps.Repos.Product, deps.Redis, deps.Repos.MinIO),
 		Comment: NewCommentService(deps.Repos.Comment, deps.Redis, deps.GRPCComment),
 		GRPC: NewGRPCService(deps.Repos.GRPC, deps.Repos.MinIO),

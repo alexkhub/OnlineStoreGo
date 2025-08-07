@@ -3,9 +3,6 @@ package repository
 import (
 	"fmt"
 	notificationsservice "notifications_service"
-
-	"time"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -30,12 +27,14 @@ func (r *EmailPostgres) CreateVerify(uuid string, user int) error {
 
 }
 
-func (r *EmailPostgres) ChechUUID(uuid string) (int, time.Time, error) {
-	var data notificationsservice.ChechUUIDData
+func (r *EmailPostgres) ChechUUID(uuid string) (notificationsservice.CheckUUIDData, error) {
+	var data notificationsservice.CheckUUIDData
 	query := fmt.Sprintf("select user_id, datetime_create from %s where verify_uuid=$1", VerifyEmailTable)
 	err := r.db.Get(&data, query, uuid)
 	if err != nil {
-		return 0, time.Now(), err
+		return notificationsservice.CheckUUIDData{}, err
 	}
-	return data.UserId, data.CreateTime, nil
+	return data, nil
 }
+
+

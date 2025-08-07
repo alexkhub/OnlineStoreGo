@@ -10,16 +10,17 @@ import (
 )
 
 type GRPCApp struct {
-	gRPCServerver *grpc.Server
+	gRPCServer *grpc.Server
 	port          int
 }
 
 func NewGRPCApp(port int, service service.GRPC) *GRPCApp {
 	gRPCServer := grpc.NewServer()
 	NewCommentGRPCServer(gRPCServer, service)
+	NewNotificationGRPCService(gRPCServer, service)
 
 	return &GRPCApp{
-		gRPCServerver: gRPCServer,
+		gRPCServer: gRPCServer,
 		port:          port,
 	}
 }
@@ -31,7 +32,7 @@ func (a *GRPCApp) Run() error {
 	}
 	log.Println("gRPC servcer start")
 
-	if err = a.gRPCServerver.Serve(l); err != nil {
+	if err = a.gRPCServer.Serve(l); err != nil {
 		log.Fatalf("start grpc server error %v", err)
 	}
 
@@ -40,6 +41,6 @@ func (a *GRPCApp) Run() error {
 
 func (a *GRPCApp) Stop() {
 	log.Println("gRPC servcer stop")
-	a.gRPCServerver.GracefulStop()
+	a.gRPCServer.GracefulStop()
 
 }

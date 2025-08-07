@@ -5,6 +5,7 @@ import (
 	"notifications_service/pkg/repository"
 
 	"github.com/IBM/sarama"
+	grpc_notifications_service "github.com/alexkhub/OnlineStoreProto/gen/go/notifications_service"
 )
 
 const (
@@ -13,18 +14,27 @@ const (
 	BlockTopic   = "block_topik"
 	Host         = "localhost"
 	Port         = ":8082"
+	CreateOrderTopik = "create_order_topik"
+
+	
+
 )
 
 type Email interface {
-	SendVerifyEmail(user_email string, subject string, body string)
+	SendVerifyEmail(user_email string, subject string, body string) error
 	CreateVerifyLink(user int) (string, error)
 	AccountConfirm(uuid string) error
-	SendBlockEmail(data notificationsservice.UserBlockResponseSerializer)
+	SendBlockEmail(data notificationsservice.UserBlockResponseSerializer) error
+}
+
+type Order interface {
+	SendQRForClient(orderData notificationsservice.CreateOrderKafkaMessage) error
+	OrderConfirmStep1(uuid string) error
 }
 
 type Deps struct {
-	Repos    *repository.Repository
-	Consumer sarama.Consumer
+	Repos    *repository.Repository	
+	GRPCAuth grpc_notifications_service.AuthClient
 	Producer sarama.SyncProducer
 	From     string
 	Password string
@@ -32,11 +42,13 @@ type Deps struct {
 
 type Service struct {
 	Email
+	Order
 }
 
 func NewService(deps Deps) *Service {
-	new_email_service := NewEmailService(deps.Repos.Email, deps.Consumer, deps.Producer, deps.From, deps.Password)
+	
 	return &Service{
-		Email: new_email_service,
+		Email: NewEmailService(deps.Repos.Email, deps.Producer, deps.From, deps.Password),
+		Order: NewOrderSerivce(deps.Repos.Order, deps.GRPCAuth, deps.Producer, deps.From, deps.Password),
 	}
 }

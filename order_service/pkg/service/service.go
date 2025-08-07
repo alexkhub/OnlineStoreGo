@@ -4,8 +4,14 @@ import (
 	orderservice "order_service"
 	"order_service/pkg/repository"
 
+	"github.com/IBM/sarama"
 	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 	"github.com/redis/go-redis/v9"
+)
+
+const (
+	DeleteProductTopik = "delete_prod_topik"
+	CreateOrderTopik = "create_order_topik"
 )
 
 
@@ -20,12 +26,18 @@ type Cart interface{
 }
 
 type Order interface{
+	PaymentMethodeList()([]orderservice.PaymentMethodeSerializer, error)
+	CreateOrder(order_data orderservice.CreateOrderSerializer) (int, error)
+}
 
+type Admin interface{
+	RemoveCartPoint(product_id int) error
 }
 
 type  Service struct{
 	Cart
 	Order
+	Admin
 }
 
 
@@ -38,13 +50,14 @@ type Deps struct {
 	Repos       *repository.Repository
 	Redis       *redis.Client
 	GRPCProduct grpc_order_service.ProductClient
-	
+	Produces sarama.SyncProducer	
 }
 
 func NewService(deps Deps) *Service{
 	return &Service{
 		Cart: NewCartService(deps.Repos.Cart, deps.GRPCProduct),
-		Order: NewOrderService(deps.Repos.Order, deps.Redis),
+		Order: NewOrderService(deps.Repos.Order, deps.Redis, deps.Produces),
+		Admin: NewAdminService(deps.Repos.Admin),
 	}
 }
 

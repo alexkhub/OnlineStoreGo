@@ -9,6 +9,7 @@ import (
 type Config struct {
 	DbConfig    `mapstructure:"db"`
 	RedisConfig `mapstructure:"redis"`
+	KafkaConfig      `mapstructure:"kafka"`
 	AppHost     string `mapstructure:"app_host"`
 	SingingKey  string `mapstructure:"singing_key"`
 }
@@ -28,6 +29,10 @@ type RedisConfig struct {
 	Password string `mapstructure:"password"`
 }
 
+type KafkaConfig struct {
+	Host string `mapstructure:"host"`
+	Port string `mapstructure:"port"`
+}
 
 
 var AppConfig Config

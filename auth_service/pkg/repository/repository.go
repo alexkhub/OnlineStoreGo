@@ -42,6 +42,7 @@ type Admin interface {
 
 type GRPC interface {
 	GetUserDataPostgres(user_ids []int64) ([]authservice.UserDataSerializer, error)
+	GetUserEmailPostgres(id int64)(string, error)
 }
 
 type MinIO interface {

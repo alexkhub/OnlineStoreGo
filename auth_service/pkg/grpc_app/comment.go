@@ -4,7 +4,8 @@ import (
 	"auth_service/pkg/service"
 	"context"
 
-	"github.com/alexkhub/OnlineStoreProto/gen/go/comment"
+	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/product_service"
+
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -25,5 +26,9 @@ func (g *CommentGRPCServer) GetUserData(ctx context.Context, request *grpc_produ
 		return nil, status.Error(codes.InvalidArgument, "Id list is empty")
 	}
 
-	return g.service.GetUserData(request.GetId())
+	data, err := g.service.GetUserData(request.GetId())
+	if err != nil{
+		return nil, status.Error(codes.Internal, err.Error() )
+	}
+	return data, nil
 }

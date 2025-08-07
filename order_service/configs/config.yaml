@@ -11,6 +11,10 @@ redis:
   port: 6379
   password: alex0000
 
+kafka:
+  host: kafka
+  port: 9092
+  
 singing_key: fdljdcsdcsv232e3cdjif
 
 

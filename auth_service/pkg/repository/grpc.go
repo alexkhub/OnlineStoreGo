@@ -27,3 +27,13 @@ func (r *GRPCRepository) GetUserDataPostgres(user_ids []int64) ([]authservice.Us
 
 	return user_data, nil
 }
+
+
+func (r *GRPCRepository) GetUserEmailPostgres(id int64)(string, error){
+	var email string
+	query := fmt.Sprintf("Select email from %s where id = $1 limit 1;", UserTable)
+	if err := r.db.Get(&email, query, id); err != nil{
+		return "", err
+	}
+	return email, nil
+}

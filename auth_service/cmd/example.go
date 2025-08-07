@@ -96,7 +96,7 @@ func main() {
 
 	go func() {
 		if err := my_handlers.InitRouter().Run(fmt.Sprintf(":%d", viper.GetInt("app_host"))); err != nil {
-			log.Fatalf("server didn't start")
+			log.Fatalf("server didn't start: %v", err)
 		}
 	}()
 	go func() {

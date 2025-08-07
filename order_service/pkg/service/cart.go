@@ -12,6 +12,7 @@ import (
 type CartService struct {
 	repos repository.Cart
 	gRPCProduct grpc_order_service.ProductClient
+	
 }
 
 func NewCartService(repos repository.Cart, gRPCProduct grpc_order_service.ProductClient) *CartService{
@@ -31,10 +32,10 @@ func (s *CartService) CartList(user_id int)([]orderservice.CartSerializer, error
 		return nil, nil
 	}
 
-	productListId := make([]int64, 0, len(dataDB)) 
+	productListId := make([]int64, len(dataDB))
 
-	for _, value := range dataDB{
-		productListId = append(productListId, value.Product)
+	for i := range dataDB {
+		productListId[i] = dataDB[i].Product
 	}
 
 	productData, err := s.gRPCProduct.GetProduct(context.Background(), &grpc_order_service.ProductIdRequest{Id: productListId})

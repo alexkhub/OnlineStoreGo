@@ -45,3 +45,29 @@ func (g *ProductGRPCService) GetProduct(ctx context.Context, request *grpc_order
 	}
 	return data, nil
 }
+
+func (g *ProductGRPCService) GetProductPrice(ctx context.Context, request *grpc_order_service.ProductIdRequest) (*grpc_order_service.ProductPriceResponse, error) {
+
+	if len(request.Id) == 0{
+		return nil, status.Errorf(codes.InvalidArgument, "Id is empty")
+	}
+	data, err := g.service.GetProductPrice(ctx, request.Id)
+
+	if err != nil{
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return data, nil
+}
+
+func (g *ProductGRPCService) GetProductName(ctx context.Context, request *grpc_order_service.ProductIdRequest) (*grpc_order_service.ProductNameResponse, error) {
+	
+	if len(request.Id) == 0{
+		return nil, status.Errorf(codes.InvalidArgument, "Id is empty")
+	}
+	data, err := g.service.GetProductName(ctx, request.Id)
+
+	if err != nil{
+		return nil, status.Errorf(codes.Internal, err.Error())
+	}
+	return data, nil
+}

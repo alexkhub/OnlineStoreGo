@@ -18,6 +18,7 @@ func (h *Handler) InitRouter() *gin.Engine {
 	router.GET("/", h.MainPage)
 	// router.GET("/email",h.VerifyEmail)
 	router.GET("/confirm/:uuid", h.AccountConfirm)
+	router.GET("/order_qr/:uuid", h.CheckQRHandler)
 
 	return router
 }
