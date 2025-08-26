@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	notificationsservice "notifications_service"
 	"notifications_service/pkg/repository"
 
@@ -9,15 +10,12 @@ import (
 )
 
 const (
-	ConfirmTopic = "confirm_topic"
-	AuthTopic    = "auth_topic"
-	BlockTopic   = "block_topik"
-	Host         = "localhost"
-	Port         = ":8082"
+	ConfirmTopic     = "confirm_topic"
+	AuthTopic        = "auth_topic"
+	BlockTopic       = "block_topik"
+	Host             = "localhost"
+	Port             = ":8082"
 	CreateOrderTopik = "create_order_topik"
-
-	
-
 )
 
 type Email interface {
@@ -32,8 +30,13 @@ type Order interface {
 	OrderConfirmStep1(uuid string) error
 }
 
+type GRPC interface {
+	CheckCode(ctx context.Context, orderData notificationsservice.CheckCodeSeralizer) (bool, error)
+	GenerateNewCode(ctx context.Context, orderId int64) error
+}
+
 type Deps struct {
-	Repos    *repository.Repository	
+	Repos    *repository.Repository
 	GRPCAuth grpc_notifications_service.AuthClient
 	Producer sarama.SyncProducer
 	From     string
@@ -43,12 +46,14 @@ type Deps struct {
 type Service struct {
 	Email
 	Order
+	GRPC
 }
 
 func NewService(deps Deps) *Service {
-	
+
 	return &Service{
 		Email: NewEmailService(deps.Repos.Email, deps.Producer, deps.From, deps.Password),
 		Order: NewOrderSerivce(deps.Repos.Order, deps.GRPCAuth, deps.Producer, deps.From, deps.Password),
+		GRPC:  NewGRPCService(deps.Repos.GRPC, deps.GRPCAuth, deps.From, deps.Password),
 	}
 }

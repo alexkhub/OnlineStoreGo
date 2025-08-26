@@ -7,9 +7,9 @@ import (
 )
 
 type CreateCommentSerializer struct {
-	Title   string `json:"title" binding:"required" valid:"-"`
-	Message string `json:"message" valid:"-"`
-	Rating int    `json:"rating"  binding:"required" valid:"-"`
+	Title   string `json:"title" binding:"required"`
+	Message string `json:"message"`
+	Rating int    `json:"rating"  binding:"required"`
 }
 
 type CommentUserDataSerializer struct {

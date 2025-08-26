@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	github.com/IBM/sarama v1.45.0
-	github.com/alexkhub/OnlineStoreProto v0.1.0
+	github.com/alexkhub/OnlineStoreProto v0.2.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/jmoiron/sqlx v1.4.0

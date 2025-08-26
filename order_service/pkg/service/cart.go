@@ -8,27 +8,24 @@ import (
 	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 )
 
-
 type CartService struct {
-	repos repository.Cart
+	repos       repository.Cart
 	gRPCProduct grpc_order_service.ProductClient
-	
 }
 
-func NewCartService(repos repository.Cart, gRPCProduct grpc_order_service.ProductClient) *CartService{
-	return  &CartService{
-		repos: repos,
+func NewCartService(repos repository.Cart, gRPCProduct grpc_order_service.ProductClient) *CartService {
+	return &CartService{
+		repos:       repos,
 		gRPCProduct: gRPCProduct,
 	}
 }
 
-
-func (s *CartService) CartList(user_id int)([]orderservice.CartSerializer, error){
+func (s *CartService) CartList(user_id int) ([]orderservice.CartSerializer, error) {
 	dataDB, err := s.repos.CartListPostgres(user_id)
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	if len(dataDB) == 0{
+	if len(dataDB) == 0 {
 		return nil, nil
 	}
 
@@ -39,60 +36,58 @@ func (s *CartService) CartList(user_id int)([]orderservice.CartSerializer, error
 	}
 
 	productData, err := s.gRPCProduct.GetProduct(context.Background(), &grpc_order_service.ProductIdRequest{Id: productListId})
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
 	productDataMap := make(map[int64]orderservice.CartProductSerializer)
 
-	for _, value := range productData.Data{
+	for _, value := range productData.Data {
 		productDataMap[value.Id] = orderservice.CartProductSerializer{
-			Id: value.Id,
+			Id:    value.Id,
 			Price: value.Price,
-			Name: value.Name,
-
+			Name:  value.Name,
 		}
 	}
 	cartList := make([]orderservice.CartSerializer, 0, len(dataDB))
-	for _, value := range dataDB{
+	for _, value := range dataDB {
 		cartList = append(cartList, orderservice.CartSerializer{
-			Id: value.Id, 
-			Amount: value.Amount, 
+			Id:      value.Id,
+			Amount:  value.Amount,
 			Product: productDataMap[value.Product]})
 
 	}
 	return cartList, nil
-	
+
 }
 
-
-func (s *CartService) CreateCart(user_id int, product_id int64)(orderservice.CartSerializer, error){
+func (s *CartService) CreateCart(user_id int, product_id int64) (orderservice.CartSerializer, error) {
 
 	prodData, err := s.gRPCProduct.GetProductCreateCart(context.Background(), &grpc_order_service.ProductIdCreateCartRequest{Id: product_id})
-	if err != nil{
+	if err != nil {
 		return orderservice.CartSerializer{}, err
 	}
 
 	cartData, err := s.repos.CreateCartPostgres(user_id, product_id)
-	if err != nil{
+	if err != nil {
 		return orderservice.CartSerializer{}, err
 	}
-	cartData.Product = orderservice.CartProductSerializer{Id : prodData.Id, Price: prodData.Price, Name: prodData.Name}
+	cartData.Product = orderservice.CartProductSerializer{Id: prodData.Id, Price: prodData.Price, Name: prodData.Name}
 
 	return cartData, nil
 }
 
-func (s *CartService) UserCartPermission(user_id, cart_id int ) bool{
+func (s *CartService) UserCartPermission(user_id, cart_id int) bool {
 	return s.repos.UserCartPermissionPostgres(user_id, cart_id)
 }
 
-func (s *CartService) UpdateCart(cart_id, amount int) error{
+func (s *CartService) UpdateCart(cart_id, amount int) error {
 	return s.repos.UpdateCartPostgres(cart_id, amount)
 }
 
-func (s *CartService) CleanCart(user_id int) error{
+func (s *CartService) CleanCart(user_id int) error {
 	return s.repos.CleanCartPostgres(user_id)
 }
 
-func (s *CartService) RemoveCartPoint(cart_id int) error{
+func (s *CartService) RemoveCartPoint(cart_id int) error {
 	return s.repos.RemoveCartPointPostgres(cart_id)
 }

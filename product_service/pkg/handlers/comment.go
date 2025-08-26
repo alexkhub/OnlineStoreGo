@@ -5,7 +5,7 @@ import (
 	productservice "product_service"
 	"strconv"
 
-	v "github.com/asaskevich/govalidator"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -16,11 +16,7 @@ func (h *Handler) CreateCommentHandler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+
 	user_id, err := GetUserId(c)
 	if err != nil {
 		newErrorMessage(c, http.StatusForbidden, err.Error())

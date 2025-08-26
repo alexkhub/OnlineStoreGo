@@ -4,8 +4,6 @@ import (
 	"net/http"
 
 	"auth_service"
-
-	v "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -22,12 +20,7 @@ func (h *Handler) RegistrationHandler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	
-	_, err := v.ValidateStruct(input)
-	if err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+
 
 	response, err := h.services.Registration(input)
 
@@ -43,11 +36,6 @@ func (h *Handler) LoginHandler(c *gin.Context) {
 	var input authservice.LoginUser
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -69,11 +57,6 @@ func (h *Handler) RefreshJWTHandler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
 
 	token, err := h.services.RefreshJWTToken(input.Refresh)
 
@@ -92,13 +75,9 @@ func (h *Handler) LogoutHandler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	
-	err = h.services.DeleteRefreshJWTToken(input.Refresh)
+
+
+	err := h.services.DeleteRefreshJWTToken(input.Refresh)
 
 	if err != nil {
 		newErrorMessage(c, http.StatusNotFound, err.Error())

@@ -7,7 +7,7 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func NewGRPCClient(host string, port int) (grpc_notifications_service.AuthClient,  error) {
+func NewGRPCClient(host string, port int) (grpc_notifications_service.AuthClient, error) {
 	connect, err := grpc.NewClient(fmt.Sprintf("%s:%d", host, port), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err

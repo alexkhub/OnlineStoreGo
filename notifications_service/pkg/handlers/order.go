@@ -6,7 +6,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) CheckQRHandler(c *gin.Context){
+func (h *Handler) CheckQRHandler(c *gin.Context) {
 	err := h.services.OrderConfirmStep1(c.Param("uuid"))
 	if err != nil {
 		newErrorMessage(c, http.StatusInternalServerError, err.Error())

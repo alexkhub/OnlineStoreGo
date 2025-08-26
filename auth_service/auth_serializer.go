@@ -1,22 +1,22 @@
 package authservice
 
 type AuthMiddlewareSerializer struct {
-	Id   string `json:"id" binding:"required" valid:"-"`
-	Role string `json:"role" binding:"required" valid:"-"`
+	Id   string `json:"id" binding:"required"`
+	Role string `json:"role" binding:"required"`
 }
 
 type AuthRegistrationSerializer struct {
-	Username       string `json:"username" binding:"required" valid:"-"`
-	Email          string `json:"email" binding:"required" valid:"email"`
-	Password       string `json:"password" binding:"required" valid:"-"`
-	RepeatPassword string `json:"repet_password" binding:"required" valid:"-"`
-	FirstName      string `json:"first_name" valid:"-"`
-	LastName       string `json:"last_name" valid:"-"`
+	Username       string `json:"username" binding:"required"`
+	Email          string `json:"email" binding:"required,email"`
+	Password       string `json:"password" binding:"required"`
+	RepeatPassword string `json:"repet_password" binding:"required"`
+	FirstName      string `json:"first_name"`
+	LastName       string `json:"last_name"`
 }
 
 type AuthRegistrationResponseSerializer struct {
-	Id    int    `json:"id" binding:"required" valid:"-"`
-	Email string `json:"email" binding:"required" valid:"email"`
+	Id    int    `json:"id"`
+	Email string `json:"email"`
 }
 
 type ConfirmUserSerializer struct {

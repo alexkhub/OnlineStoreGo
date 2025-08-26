@@ -39,8 +39,7 @@ func (r *OrderPostgres) CheckUUIDPostgres(uuid string) (notificationsservice.Che
 	return data, nil
 }
 
-
-func (r *OrderPostgres) CodeGenerationPostgres(order_id int)(int, error){
+func (r *OrderPostgres) CodeGenerationPostgres(order_id int) (int, error) {
 	var confirm_code int
 	query := fmt.Sprintf("insert into %s (order_id) values ($1) returning confirm_code;", ConfirmOrderTable)
 	row := r.db.QueryRow(query, order_id)

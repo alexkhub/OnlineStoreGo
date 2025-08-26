@@ -12,7 +12,8 @@ import (
 	"syscall"
 
 	"notifications_service/configs"
-	grpcapp "notifications_service/grpc_app"
+
+	grpcapp "notifications_service/pkg/grpc_app"
 	"notifications_service/pkg/handlers"
 	"notifications_service/pkg/repository"
 	"notifications_service/pkg/service"
@@ -90,6 +91,8 @@ func main() {
 	}
 	defer partConsumerCreateOrder.Close()
 
+	gRPHanler := grpcapp.NewGRPCApp(9999, services.GRPC)
+
 	my_handlers := handlers.NewHandler(services)
 
 	go func() {
@@ -97,8 +100,14 @@ func main() {
 			log.Fatalf("server didn't start")
 		}
 	}()
+
 	go func() {
-		for{
+		gRPHanler.Run()
+
+	}()
+
+	go func() {
+		for {
 			select {
 			case msg, ok := <-partConsumer.Messages():
 				if !ok {
@@ -127,8 +136,6 @@ func main() {
 				}
 				log.Println("send verify")
 
-
-
 			case msg, ok := <-partConsumerBlock.Messages():
 				if !ok {
 					log.Println("Channel closed, exiting")
@@ -142,12 +149,12 @@ func main() {
 					continue
 				}
 				err = services.SendBlockEmail(receivedMessage)
-				if err != nil{
+				if err != nil {
 					log.Printf("error sevd block: %v", err)
 				}
 				log.Println("Block email send")
 
-			case msg, ok := <- partConsumerCreateOrder.Messages():
+			case msg, ok := <-partConsumerCreateOrder.Messages():
 				log.Println(111111)
 				if !ok {
 					log.Println("Channel closed, exiting")
@@ -169,8 +176,6 @@ func main() {
 
 			}
 
-		
-
 		}
 	}()
 
@@ -179,7 +184,7 @@ func main() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
 	<-quit
-	
+	gRPHanler.Stop()
 
 	log.Print("NotificationService Shutting Down")
 

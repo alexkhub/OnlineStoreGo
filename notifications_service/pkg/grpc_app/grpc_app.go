@@ -1,10 +1,10 @@
 package grpcapp
 
 import (
-	"auth_service/pkg/service"
 	"fmt"
 	"log"
 	"net"
+	"notifications_service/pkg/service"
 
 	"google.golang.org/grpc"
 )
@@ -16,8 +16,6 @@ type GRPCApp struct {
 
 func NewGRPCApp(port int, service service.GRPC) *GRPCApp {
 	gRPCServer := grpc.NewServer()
-	NewCommentGRPCServer(gRPCServer, service)
-	NewNotificationGRPCService(gRPCServer, service)
 	NewOrderGRPCService(gRPCServer, service)
 
 	return &GRPCApp{

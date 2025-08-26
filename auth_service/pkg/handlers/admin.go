@@ -4,8 +4,6 @@ import (
 	authservice "auth_service"
 	"net/http"
 	"strconv"
-
-	v "github.com/asaskevich/govalidator"
 	"github.com/gin-gonic/gin"
 )
 
@@ -70,11 +68,7 @@ func (h *Handler) UserUpdateHandler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, err = v.ValidateStruct(input)
-	if err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+	
 	err = h.services.ProfileUpdate(user_id, input)
 	if err != nil {
 		newErrorMessage(c, http.StatusInternalServerError, err.Error())

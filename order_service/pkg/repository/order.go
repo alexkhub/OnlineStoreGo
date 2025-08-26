@@ -3,58 +3,52 @@ package repository
 import (
 	"context"
 	"fmt"
-	"strings"
 	orderservice "order_service"
+	"strings"
 
 	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 	"github.com/jmoiron/sqlx"
 	"github.com/redis/go-redis/v9"
 )
 
-
-type OrderPostgres struct{
-	db      *sqlx.DB
+type OrderPostgres struct {
+	db          *sqlx.DB
 	redisDB     *redis.Client
 	gRPCProduct grpc_order_service.ProductClient
 }
 
-func NewOrderPostgres(db *sqlx.DB, redisDB *redis.Client, gRPCProduct grpc_order_service.ProductClient ) *OrderPostgres{
+func NewOrderPostgres(db *sqlx.DB, redisDB *redis.Client, gRPCProduct grpc_order_service.ProductClient) *OrderPostgres {
 	return &OrderPostgres{
-		db: db,
-		redisDB: redisDB,
+		db:          db,
+		redisDB:     redisDB,
 		gRPCProduct: gRPCProduct,
 	}
 }
 
-
-
-func (r *OrderPostgres)PaymentMethodeListPostgres()([]orderservice.PaymentMethodeSerializer, error){
+func (r *OrderPostgres) PaymentMethodeListPostgres() ([]orderservice.PaymentMethodeSerializer, error) {
 	var data []orderservice.PaymentMethodeSerializer
 
 	query := fmt.Sprintf("select id, name, description from %s;", PaymentMethodeTable)
-	if  err := r.db.Select(&data, query); err != nil{
+	if err := r.db.Select(&data, query); err != nil {
 		return nil, err
 	}
 	return data, nil
 }
 
-
-func (r *OrderPostgres) CreateOrderPostgres(order_data orderservice.CreateOrderSerializer) (int, error){
-	var id int 
+func (r *OrderPostgres) CreateOrderPostgres(order_data orderservice.CreateOrderSerializer) (int, error) {
+	var id int
 	var cartData []orderservice.CreateOrderCartDataSerializer
 	var price int64
 	args := make([]interface{}, 0)
 	placeholders := []string{}
 
-
-
 	query := fmt.Sprintf("select product_id, amount from %s  where user_id = $1 order by product_id;", CartTable)
 
-	if err := r.db.Select(&cartData, query, order_data.User); err != nil{
+	if err := r.db.Select(&cartData, query, order_data.User); err != nil {
 		return 0, err
 	}
 
-	if len(cartData) == 0{
+	if len(cartData) == 0 {
 		return 0, fmt.Errorf("cart is empty")
 	}
 
@@ -65,11 +59,11 @@ func (r *OrderPostgres) CreateOrderPostgres(order_data orderservice.CreateOrderS
 	}
 	productData, err := r.gRPCProduct.GetProductPrice(context.Background(), &grpc_order_service.ProductIdRequest{Id: productListId})
 
-	for indx := range len(cartData){
+	for indx := range len(cartData) {
 		price += cartData[indx].Amount * productData.Data[indx].Price
 	}
 
-	if err != nil{
+	if err != nil {
 		return 0, err
 	}
 	tx, err := r.db.Begin()
@@ -77,15 +71,13 @@ func (r *OrderPostgres) CreateOrderPostgres(order_data orderservice.CreateOrderS
 		return 0, err
 	}
 
-	
 	query = fmt.Sprintf("insert into %s (payment_method, delivery_method, address, user_id, full_price) values ($1, $2, $3, $4, $5) returning id;", OrderTable)
-	row  := tx.QueryRow(query, order_data.PaymentMethod, order_data.DeliveryMethod, order_data.Address, order_data.User, price) 
+	row := tx.QueryRow(query, order_data.PaymentMethod, order_data.DeliveryMethod, order_data.Address, order_data.User, price)
 
 	if err := row.Scan(&id); err != nil {
 		tx.Rollback()
 		return 0, err
 	}
-	
 
 	query = fmt.Sprintf("insert into  %s (product_id, product_price, amount) values", OrderPointTable)
 
@@ -115,14 +107,14 @@ func (r *OrderPostgres) CreateOrderPostgres(order_data orderservice.CreateOrderS
 	}
 	query = fmt.Sprintf("insert into  %s (user_order,  order_point) values", OrderOrderPointTable)
 	for i := range len(ids) {
-		query += fmt.Sprintf("(%d, $%d)",id, i+1)
+		query += fmt.Sprintf("(%d, $%d)", id, i+1)
 		if i < len(ids)-1 {
 			query += ", "
 		}
 
 	}
 	_, err = tx.Exec(query, ids...)
-	if err != nil{
+	if err != nil {
 		tx.Rollback()
 		return 0, err
 	}
@@ -130,10 +122,70 @@ func (r *OrderPostgres) CreateOrderPostgres(order_data orderservice.CreateOrderS
 	query = fmt.Sprintf("delete from %s where user_id = $1;", CartTable)
 
 	_, err = tx.Exec(query, order_data.User)
-	if err != nil{
+	if err != nil {
 		tx.Rollback()
 		return 0, err
 	}
 	tx.Commit()
 	return id, nil
+}
+
+func (r *OrderPostgres) GetOrderPostgres(ctx context.Context, orderId int64) (orderservice.EmployeePreparatoryOrderDataSerializer, error) {
+	select {
+	case <-ctx.Done():
+		return orderservice.EmployeePreparatoryOrderDataSerializer{}, ctx.Err()
+	default:
+	}
+	var order orderservice.EmployeePreparatoryOrderDataSerializer
+
+	query := fmt.Sprintf("select o.id, o.user_id, o.full_price, p.name as payment_method, o.status, o.delivery_method, o.create_at, o.delivery_date, o.employee from %s as o left join %s as p on o.payment_method = p.id where o.id=$1", OrderTable, PaymentMethodeTable)
+
+	err := r.db.GetContext(ctx, &order, query, orderId)
+	if err != nil {
+		return orderservice.EmployeePreparatoryOrderDataSerializer{}, err
+
+	}
+	return order, nil
+}
+
+func (r *OrderPostgres) GetOrderPointPostgres(ctx context.Context, orderId int64) ([]orderservice.OrderPointSerializer, error) {
+	var orderPoints []orderservice.OrderPointSerializer
+	query := fmt.Sprintf("select id, product_id, product_price, amount  from %s where id in (select order_point from %s where user_order = $1) order by product_id;", OrderPointTable, OrderOrderPointTable)
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	default:
+	}
+
+	err := r.db.SelectContext(ctx, &orderPoints, query, orderId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return orderPoints, nil
+
+}
+
+
+func (r *OrderPostgres) CheckOrderPermissionPostgres(ctx context.Context, orderData orderservice.OrderPermission) error{
+	var id int64
+
+	query := fmt.Sprintf("select id from %s where id = $1 and  user_id = $2;", OrderTable)
+	if err := r.db.GetContext(ctx, &id, query, orderData.OrderId, orderData.UserId); err != nil{
+		return err 
+	}
+	return nil
+}
+
+
+func (r *OrderPostgres) UserOrdersPostgres(userId int) ([]orderservice.UserOrderListSerializer, error){
+	var data []orderservice.UserOrderListSerializer
+
+	query := fmt.Sprintf("select id, full_price, delivery_method, payment_status, create_at, delivery_date from %s where user_id = $1;", OrderTable)
+
+	if err := r.db.Select(&data, query, userId); err != nil{
+		return nil, err
+	}
+	return data,  nil
 }

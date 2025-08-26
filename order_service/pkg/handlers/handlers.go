@@ -34,10 +34,17 @@ func (h *Handler) InitRouter() *gin.Engine {
 		{
 			order.GET("/payment_methode", h.PaymentMethodeListHandler)
 			order.POST("/create_order", h.CreateOrderHandler)
+			order.GET("/order_detail/:id", h.DetailOrderHandler)
+			order.GET("/my_orders", h.UserOrdersHandler)
 		}
-			
+		employee := api.Group("/employee", h.parseAuthHeader)
+		{
+			employee.POST("/confirm_order_step1/:order_id", h.ConfirmOrderStep1Handler)
+			employee.POST("/confirm_order_step2/:order_id", h.ConfirmOrderStep2Handler)
+			employee.POST("/confirm_order_step3/:order_id", h.ConfirmOrderStep3Handler)
+		}
+
 	}
-	
 
 	return router
 }

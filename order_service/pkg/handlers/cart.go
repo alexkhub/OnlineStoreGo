@@ -1,10 +1,10 @@
 package handlers
 
 import (
+	"github.com/gin-gonic/gin"
 	"net/http"
 	orderservice "order_service"
 	"strconv"
-	"github.com/gin-gonic/gin"
 )
 
 func (h *Handler) MainPage(c *gin.Context) {
@@ -13,24 +13,24 @@ func (h *Handler) MainPage(c *gin.Context) {
 	})
 }
 
-func (h *Handler) GetMyCartHandler(c *gin.Context ){
+func (h *Handler) GetMyCartHandler(c *gin.Context) {
 	user, err := GetUserId(c)
 
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusForbidden, err.Error())
 		return
 	}
 	data, err := h.services.Cart.CartList(user)
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
 	c.JSON(http.StatusOK, getListCartResponse{Data: data})
-	
+
 }
 
-func (h *Handler) AddProductHandler(c *gin.Context){
+func (h *Handler) AddProductHandler(c *gin.Context) {
 	var input orderservice.CreateCartSerializer
 
 	if err := c.BindJSON(&input); err != nil {
@@ -39,22 +39,21 @@ func (h *Handler) AddProductHandler(c *gin.Context){
 	}
 	user, err := GetUserId(c)
 
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
 	data, err := h.services.Cart.CreateCart(user, input.Product)
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	
 	c.JSON(http.StatusCreated, data)
 
 }
 
-func (h *Handler) UpdateCartHandler(c *gin.Context){
+func (h *Handler) UpdateCartHandler(c *gin.Context) {
 	var input orderservice.UpdateCartSerializer
 
 	if err := c.BindJSON(&input); err != nil {
@@ -63,7 +62,7 @@ func (h *Handler) UpdateCartHandler(c *gin.Context){
 	}
 	user, err := GetUserId(c)
 
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -75,7 +74,7 @@ func (h *Handler) UpdateCartHandler(c *gin.Context){
 	}
 
 	access := h.services.Cart.UserCartPermission(user, cart_id)
-	if !access{
+	if !access {
 		newErrorMessage(c, http.StatusForbidden, "no access to object")
 		return
 	}
@@ -88,10 +87,10 @@ func (h *Handler) UpdateCartHandler(c *gin.Context){
 	c.JSON(http.StatusAccepted, nil)
 }
 
-func (h *Handler) CleanCartHandler(c *gin.Context){
+func (h *Handler) CleanCartHandler(c *gin.Context) {
 	user, err := GetUserId(c)
 
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -103,13 +102,12 @@ func (h *Handler) CleanCartHandler(c *gin.Context){
 	}
 	c.JSON(http.StatusNoContent, nil)
 
-
 }
 
-func (h *Handler) RemoveCartPointHandler(c *gin.Context){
+func (h *Handler) RemoveCartPointHandler(c *gin.Context) {
 	user, err := GetUserId(c)
 
-	if err != nil{
+	if err != nil {
 		newErrorMessage(c, http.StatusUnauthorized, err.Error())
 		return
 	}
@@ -120,7 +118,7 @@ func (h *Handler) RemoveCartPointHandler(c *gin.Context){
 		return
 	}
 	access := h.services.Cart.UserCartPermission(user, cart_id)
-	if !access{
+	if !access {
 		newErrorMessage(c, http.StatusForbidden, "no access to object")
 		return
 	}

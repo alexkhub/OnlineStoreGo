@@ -1,7 +1,6 @@
 package service
 
 import (
-
 	"fmt"
 
 	notificationsservice "notifications_service"
@@ -13,14 +12,14 @@ import (
 )
 
 type EmailService struct {
-	repos    repository.Email
+	repos repository.Email
 
 	producer sarama.SyncProducer
 	from     string
 	password string
 }
 
-func NewEmailService(repos repository.Email,  producer sarama.SyncProducer, from, password string) *EmailService {
+func NewEmailService(repos repository.Email, producer sarama.SyncProducer, from, password string) *EmailService {
 	return &EmailService{
 		repos:    repos,
 		producer: producer,
@@ -30,9 +29,9 @@ func NewEmailService(repos repository.Email,  producer sarama.SyncProducer, from
 }
 
 func (s *EmailService) SendVerifyEmail(user_email string, subject string, body string) error {
-	
+
 	return SendEmailV2(s.from, s.password, user_email, subject, body, "")
-		
+
 }
 
 func (s *EmailService) CreateVerifyLink(user int) (string, error) {
@@ -61,7 +60,7 @@ func (s *EmailService) AccountConfirm(uuid string) error {
 }
 
 func (s *EmailService) SendBlockEmail(data notificationsservice.UserBlockResponseSerializer) error {
-	
+
 	var subject, body string
 
 	if data.Block {
@@ -72,7 +71,5 @@ func (s *EmailService) SendBlockEmail(data notificationsservice.UserBlockRespons
 		body = fmt.Sprintf("You account unblocked at %s", time.Now().Format(time.DateTime))
 	}
 	return SendEmail(s.from, s.password, data.Email, subject, body)
-	
 
-	
 }

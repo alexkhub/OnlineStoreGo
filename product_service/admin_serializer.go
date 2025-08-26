@@ -9,11 +9,11 @@ type FileUploadSerializer struct {
 }
 
 type AdminCreateProductSerializer struct {
-	Name        string      `json:"name" binding:"required" valid:"-"`
-	Price       int         `json:"price" binding:"required" valid:"-"`
-	Discount    null.Int         `json:"discount" binding:"required" valid:"-"`
-	Description null.String `json:"description" valid:"-" `
-	Category    null.Int    `json:"category" valid:"-"`
+	Name        string      `json:"name" binding:"required"`
+	Price       int         `json:"price" binding:"required"`
+	Discount    null.Int     `json:"discount" binding:"required"`
+	Description null.String `json:"description"`
+	Category    null.Int    `json:"category"`
 }
 
 type AdminProductDetailSerailizer struct {
@@ -28,15 +28,15 @@ type AdminProductDetailSerailizer struct {
 }
 
 type AdminUpdateProductSerializer struct {
-	Name        string      `json:"name"  valid:"-"`
-	Price       int         `json:"price" valid:"-"`
-	Discount    null.Int    `json:"discount" valid:"-"`
-	Description null.String `json:"description" valid:"-" `
-	Category    null.Int    `json:"category" valid:"-"`
+	Name        string      `json:"name"`
+	Price       int         `json:"price"`
+	Discount    null.Int    `json:"discount"`
+	Description null.String `json:"description"`
+	Category    null.Int    `json:"category"`
 }
 
 
 type AdminKafkaUpdateProductSerializer struct {
 	Id int `json:"name"`
-	Price int  `json:"price" valid:"-"`
+	Price int  `json:"price"`
 }

@@ -8,12 +8,12 @@ import (
 
 type ProfileSerializer struct {
 	Id        int         `json:"id" valid:"-" db:"id"`
-	Username  string      `json:"username"  db:"username" valid:"-"`
-	Email     string      `json:"email" valid:"email" db:"email"`
-	Role      string      `json:"role" valid:"-" db:"role_name"`
-	FirstName null.String `json:"first_name"  db:"first_name" valid:"-"`
-	LastName  null.String `json:"last_name"  db:"last_name" valid:"-"`
-	DateTime  time.Time   `json:"datetime_create"  db:"datetime_create" valid:"-"`
+	Username  string      `json:"username"  db:"username"`
+	Email     string      `json:"email" db:"email" binding:"email"`
+	Role      string      `json:"role" db:"role_name"`
+	FirstName null.String `json:"first_name"  db:"first_name"`
+	LastName  null.String `json:"last_name"  db:"last_name"`
+	DateTime  time.Time   `json:"datetime_create"  db:"datetime_create"`
 	Image     null.String `json:"image" valid:"-" db:"image"`
 }
 
@@ -24,18 +24,18 @@ type FileUploadSerializer struct {
 }
 
 type AdminUserListSerializer struct {
-	Id        int         `json:"id" valid:"-" db:"id"`
-	Username  string      `json:"username"  db:"username" valid:"-"`
-	Email     string      `json:"email" valid:"email" db:"email"`
-	Role      string      `json:"role" valid:"-" db:"role_name"`
-	FirstName null.String `json:"first_name"  db:"first_name" valid:"-"`
-	LastName  null.String `json:"last_name"  db:"last_name" valid:"-"`
-	DateTime  time.Time   `json:"datetime_create"  db:"datetime_create" valid:"-"`
-	Actvate   bool        `json:"activate"  db:"activate" valid:"-"`
-	Block     bool        `json:"block"  db:"block" valid:"-"`
+	Id        int         `json:"id" db:"id"`
+	Username  string      `json:"username" db:"username"`
+	Email     string      `json:"email" db:"email" binding:"email"`
+	Role      string      `json:"role" db:"role_name"`
+	FirstName null.String `json:"first_name" db:"first_name"`
+	LastName  null.String `json:"last_name" db:"last_name"`
+	DateTime  time.Time   `json:"datetime_create"  db:"datetime_create"`
+	Actvate   bool        `json:"activate"  db:"activate"`
+	Block     bool        `json:"block"  db:"block"`
 }
 
 type RoleListSerializer struct {
-	Id   int    `json:"id" valid:"-" db:"id"`
-	Name string `json:"name" valid:"-" db:"role_name"`
+	Id   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"role_name"`
 }

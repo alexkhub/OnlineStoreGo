@@ -5,12 +5,12 @@ import (
 )
 
 type AuthMiddlewareSerializer struct {
-	Id   string `json:"id" binding:"required" valid:"-"`
+	Id   string `json:"id" binding:"required"`
 	Role string `json:"role" binding:"required" valid:"-"`
 }
 type CategorySerializer struct {
-	Id   int    `json:"id" valid:"-" db:"id"`
-	Name string `json:"name" binding:"required" valid:"-" db:"name"`
+	Id   int    `json:"id" db:"id"`
+	Name string `json:"name" binding:"required" db:"name"`
 }
 
 type ImageSerializer struct {

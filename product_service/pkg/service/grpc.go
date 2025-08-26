@@ -76,3 +76,5 @@ func (s *GRPCService) GetProductName(ctx context.Context, productIds []int64) (*
 	}
 	return &grpc_order_service.ProductNameResponse{Data: prod_data}, nil
 }
+
+

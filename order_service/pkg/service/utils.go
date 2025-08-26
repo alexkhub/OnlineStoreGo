@@ -8,8 +8,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
-
 func SendCreateOrderKafkaMessage(producer sarama.SyncProducer, data orderservice.CreateOrderKafkaMessage) error {
 	requestID := uuid.New().String()
 	orderJson, err := json.Marshal(data)

@@ -6,7 +6,6 @@ import (
 
 	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/product_service"
 
-
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -27,8 +26,8 @@ func (g *CommentGRPCServer) GetUserData(ctx context.Context, request *grpc_produ
 	}
 
 	data, err := g.service.GetUserData(request.GetId())
-	if err != nil{
-		return nil, status.Error(codes.Internal, err.Error() )
+	if err != nil {
+		return nil, status.Error(codes.Internal, err.Error())
 	}
 	return data, nil
 }

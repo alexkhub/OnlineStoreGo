@@ -2,8 +2,8 @@ package repository
 
 import (
 	"fmt"
-	notificationsservice "notifications_service"
 	"github.com/jmoiron/sqlx"
+	notificationsservice "notifications_service"
 )
 
 type EmailPostgres struct {
@@ -36,5 +36,3 @@ func (r *EmailPostgres) ChechUUID(uuid string) (notificationsservice.CheckUUIDDa
 	}
 	return data, nil
 }
-
-

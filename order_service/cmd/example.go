@@ -20,13 +20,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-
 func main() {
 	configs.LoadConfig()
 	sarama_config := sarama.NewConfig()
 	sarama_config.Consumer.Return.Errors = true
 
-	
 	dbConfig := viper.GetStringMapString("db")
 	db_conf_port, _ := strconv.Atoi(dbConfig["port"])
 
@@ -35,13 +33,12 @@ func main() {
 
 	kafkaConfig := viper.GetStringMapString("kafka")
 	kafka_conf_port, _ := strconv.Atoi(kafkaConfig["port"])
-	
+
 	db, err := repository.NewDBConnect(dbConfig["host"], db_conf_port, dbConfig["user"], dbConfig["password"], dbConfig["dbname"], dbConfig["sslmode"])
 
 	if err != nil {
 		log.Fatalln("db err", err.Error())
 	}
-
 
 	redisdb, err := repository.NewRedisConnect(redisConfig["host"], redis_conf_port, redisConfig["password"])
 	if err != nil {
@@ -49,6 +46,14 @@ func main() {
 	}
 
 	grpcClient, err := grpcapp.NewGRPCClient("product_service", 9999)
+	if err != nil {
+		log.Fatalln("gRPC product err", err.Error())
+	}
+	grpcNotClient, err := grpcapp.NewNotificationGRPCClient("notifications_service", 9999)
+	if err != nil {
+		log.Fatalln("gRPC product err", err.Error())
+	}
+	grpcAuthClient, err := grpcapp.NewAuthGRPCClient("auth_service", 9999)
 	if err != nil {
 		log.Fatalln("gRPC product err", err.Error())
 	}
@@ -72,7 +77,7 @@ func main() {
 
 	repos := repository.NewRepository(repository.ReposDeps{DB: db, Redis: redisdb, GRPCProduct: grpcClient})
 	jwt_manager := service.NewManager(viper.GetString("singing_key"))
-	services := service.NewService(service.Deps{Repos: repos,  Redis: redisdb, GRPCProduct: grpcClient, Produces: producer})
+	services := service.NewService(service.Deps{Repos: repos, Redis: redisdb, GRPCProduct: grpcClient, GRPCNotification: grpcNotClient, GRPCAuth: grpcAuthClient, Produces: producer})
 	my_handlers := handlers.NewHandler(services, jwt_manager)
 
 	go func() {
@@ -80,7 +85,7 @@ func main() {
 			log.Fatalf("server didn't start")
 		}
 	}()
-	
+
 	go func() {
 		for {
 			select {
@@ -102,12 +107,12 @@ func main() {
 					log.Printf("Remove product id=%d error: %s", prodId, err)
 				}
 				log.Printf("Received message: %+v\n", prodId)
+
 			}
+
 		}
 	}()
 	log.Println("Order Service Started")
-
-	
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)

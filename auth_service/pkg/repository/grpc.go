@@ -28,12 +28,21 @@ func (r *GRPCRepository) GetUserDataPostgres(user_ids []int64) ([]authservice.Us
 	return user_data, nil
 }
 
-
-func (r *GRPCRepository) GetUserEmailPostgres(id int64)(string, error){
+func (r *GRPCRepository) GetUserEmailPostgres(id int64) (string, error) {
 	var email string
 	query := fmt.Sprintf("Select email from %s where id = $1 limit 1;", UserTable)
-	if err := r.db.Get(&email, query, id); err != nil{
+	if err := r.db.Get(&email, query, id); err != nil {
 		return "", err
 	}
 	return email, nil
+}
+
+func (r *GRPCRepository) GetOrderUserDataPostgres(user_ids []int64) ([]authservice.OrderUserDataSerializer, error) {
+	var user_data []authservice.OrderUserDataSerializer
+	query := fmt.Sprintf("Select id, CONCAT(first_name, ' ', last_name) as full_name, email from %s where id = any($1) ;", UserTable)
+	if err := r.db.Select(&user_data, query, pq.Array(user_ids)); err != nil {
+		return nil, err
+	}
+
+	return user_data, nil
 }

@@ -3,7 +3,7 @@ module order_service
 go 1.23.2
 
 require (
-	github.com/alexkhub/OnlineStoreProto v0.1.0
+	github.com/alexkhub/OnlineStoreProto v0.2.2
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.10.1

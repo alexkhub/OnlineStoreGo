@@ -19,11 +19,14 @@ create table user_order (
     payment_method int NULL REFERENCES payment_method(id) ON DELETE SET NULL,
     status varchar(50) DEFAULT 'Collect',
     delivery_method varchar(50) DEFAULT 'Delivery',
+    payment_status varchar(10) DEFAULT 'Unpaid',
     address varchar(200),
     create_at timestamptz DEFAULT now(),
     delivery_date timestamptz NULL, 
+    employee int NULL,
     CHECK (status IN ('Collect', 'Ready to ship', 'At the pick-up point', 'Delivered', 'Canceled')),
-    CHECK (delivery_method IN ('Delivery', 'Self pickup'))
+    CHECK (delivery_method IN ('Delivery', 'Self pickup')),
+    CHECK (payment_status IN ('Unpaid', 'Paid')) 
 );
 
 create table order_point (

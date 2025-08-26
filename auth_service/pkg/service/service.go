@@ -7,6 +7,7 @@ import (
 
 	"github.com/IBM/sarama"
 	grpc_notifications_service "github.com/alexkhub/OnlineStoreProto/gen/go/notifications_service"
+	grpc_order_service "github.com/alexkhub/OnlineStoreProto/gen/go/order_service"
 	grpc_product_service "github.com/alexkhub/OnlineStoreProto/gen/go/product_service"
 	"github.com/minio/minio-go/v7"
 )
@@ -50,7 +51,8 @@ type JWTManager interface {
 
 type GRPC interface {
 	GetUserData(user_ids []int64) (*grpc_product_service.UserDataResponse, error)
-	GetUserEmail(id int64)(*grpc_notifications_service.UserEmailResponse, error)
+	GetUserEmail(id int64) (*grpc_notifications_service.UserEmailResponse, error)
+	GetOrderUserData(user_ids []int64) (*grpc_order_service.UserDataResponse, error)
 }
 
 type Deps struct {

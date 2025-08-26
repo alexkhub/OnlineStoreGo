@@ -6,7 +6,7 @@ import (
 	productservice "product_service"
 	"strconv"
 
-	v "github.com/asaskevich/govalidator"
+	
 	"github.com/gin-gonic/gin"
 )
 
@@ -19,11 +19,7 @@ func (h *Handler) CreateCategoryHanler(c *gin.Context) {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
+	
 	id, err := h.services.CreateCategory(input)
 
 	if err != nil {
@@ -42,11 +38,6 @@ func (h *Handler) CreateProductHandler(c *gin.Context) {
 	var input productservice.AdminCreateProductSerializer
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}
@@ -176,11 +167,6 @@ func (h *Handler) UpdateProductHandler(c *gin.Context) {
 	var input productservice.AdminUpdateProductSerializer
 
 	if err := c.BindJSON(&input); err != nil {
-		newErrorMessage(c, http.StatusBadRequest, err.Error())
-		return
-	}
-	_, err := v.ValidateStruct(input)
-	if err != nil {
 		newErrorMessage(c, http.StatusBadRequest, err.Error())
 		return
 	}

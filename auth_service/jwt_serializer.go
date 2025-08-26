@@ -1,9 +1,9 @@
 package authservice
 
 type LoginUser struct {
-	Username string `json:"username"  valid:"-"`
-	Email    string `json:"email" valid:"email"`
-	Password string `json:"password" binding:"required" valid:"-"`
+	Username string `json:"username"`
+	Email    string `json:"email" binding:"omitempty,email"`
+	Password string `json:"password" binding:"required"`
 }
 
 type JWTToken struct {
@@ -12,7 +12,7 @@ type JWTToken struct {
 }
 
 type RefreshToken struct {
-	Refresh string `json:"refresh" binding:"required" valid:"-"`
+	Refresh string `json:"refresh" binding:"required"`
 }
 
 type LoginPostgresData struct {
