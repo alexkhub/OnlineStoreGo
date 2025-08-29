@@ -30,11 +30,14 @@ type Order interface {
 	OrderDetail(ctx context.Context, orderId int64) (orderservice.EmployeeOrderDataSerializer, error)
 	CheckOrderPermission(ctx context.Context, orderData orderservice.OrderPermission) orderservice.MyError
 	UserOrders(userId int) ([]orderservice.UserOrderListSerializer, error)
+	OrdersStatistic(userId int)(orderservice.UserOrderStatisticSerializer, error)
 }
 
 
 type Admin interface {
 	RemoveCartPoint(product_id int) error
+	OrderList(filter orderservice.OrderFilter)([]orderservice.AdminOrderListSerializer, error)
+	OrdersStatistic(filter orderservice.OrderFilter)([]orderservice.AdminOrderStatisticSerializer, error)
 }
 
 type Employee interface {
@@ -67,7 +70,7 @@ func NewService(deps Deps) *Service {
 	return &Service{
 		Cart:     NewCartService(deps.Repos.Cart, deps.GRPCProduct),
 		Order:    NewOrderService(deps.Repos.Order, deps.Redis, deps.Produces, deps.GRPCProduct, deps.GRPCAuth),
-		Admin:    NewAdminService(deps.Repos.Admin),
+		Admin:    NewAdminService(deps.Repos.Admin, deps.GRPCAuth),
 		Employee: NewEmployeeService(deps.Repos.Employee, deps.GRPCNotification, deps.GRPCProduct, deps.GRPCAuth),
 	}
 }

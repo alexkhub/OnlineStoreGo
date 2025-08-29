@@ -33,11 +33,13 @@ type Order interface {
 	GetOrderPointPostgres(ctx context.Context, orderId int64) ([]orderservice.OrderPointSerializer, error)
 	CheckOrderPermissionPostgres(ctx context.Context, orderData orderservice.OrderPermission) error
 	UserOrdersPostgres(userId int) ([]orderservice.UserOrderListSerializer, error)
-	
+	OrdersStatisticPostgres(userId int)(orderservice.UserOrderStatisticSerializer, error)
 }
 
 type Admin interface {
 	RemoveCartPointPostgres(product_id int) error
+	OrderListPostgres(filter orderservice.OrderFilter)([]orderservice.AdminPreparatoryOrderListSerializer, error)
+	OrdersStatisticPostgres(filter orderservice.OrderFilter)([]orderservice.AdminOrderStatisticSerializer, error)
 }
 
 type Employee interface {

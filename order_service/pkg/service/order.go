@@ -186,3 +186,9 @@ func (s *OrderService) CheckOrderPermission(ctx context.Context, orderData order
 func (s *OrderService) UserOrders(userId int) ([]orderservice.UserOrderListSerializer, error){
 	return s.repos.UserOrdersPostgres(userId)
 }
+
+
+
+func (s *OrderService) OrdersStatistic(userId int)(orderservice.UserOrderStatisticSerializer, error){
+	return s.repos.OrdersStatisticPostgres(userId)
+}

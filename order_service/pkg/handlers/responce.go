@@ -28,6 +28,15 @@ type getListPaymentMethodeResponse struct {
 	Data []orderservice.PaymentMethodeSerializer `json:"data"`
 }
 
-type getListUserOrderListResponse struct{
+type getUserOrderListResponse struct{
 	Data []orderservice.UserOrderListSerializer `json:"data"`
+}
+
+
+type getAdminOrderListResponse struct{
+	Data []orderservice.AdminOrderListSerializer `json:"data"`
+}
+
+type getAdminOrderStatisticResponse struct{
+	Data []orderservice.  AdminOrderStatisticSerializer `json:"data"`
 }

@@ -189,3 +189,19 @@ func (r *OrderPostgres) UserOrdersPostgres(userId int) ([]orderservice.UserOrder
 	}
 	return data,  nil
 }
+
+
+func (r *OrderPostgres) OrdersStatisticPostgres(userId int)(orderservice.UserOrderStatisticSerializer, error){
+	var data orderservice.UserOrderStatisticSerializer
+
+	query := fmt.Sprintf(`SELECT COUNT(*) AS amount, 
+						SUM(CASE WHEN payment_status = 'Paid' and status = 'Delivered' THEN full_price END) AS total_price,
+						ROUND(AVG(CASE WHEN payment_status = 'Paid' and status = 'Delivered' THEN full_price END), 2) AS avg_price  
+						FROM %s 
+						WHERE user_id = $1;
+						`, OrderTable)	
+	if err := r.db.Get(&data, query, userId); err != nil{
+		return orderservice.UserOrderStatisticSerializer{}, err
+	}
+	return data, nil
+}

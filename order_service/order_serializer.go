@@ -36,6 +36,13 @@ type UserOrderListSerializer struct{
 	PaymentStatus string `json:"payment_status" db:"payment_status"`
 	CreateAt time.Time `json:"create_at" db:"create_at"`
 	DeliveryDate null.Time `json:"delivery_date" db:"delivery_date"`
+}
+
+type UserOrderStatisticSerializer struct{
+	
+	Amount null.Int `json:"amount" db:"amount"`
+	TotalPrice null.Int `json:"total_price" db:"total_price"`
+	AvgPrice null.Float `json:"avg_price" db:"avg_price"`
 
 }
 

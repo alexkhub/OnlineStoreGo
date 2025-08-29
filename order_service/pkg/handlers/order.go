@@ -111,7 +111,7 @@ func (h *Handler) DetailOrderHandler(c *gin.Context){
 }
 
 
-func (h *Handler) UserOrdersHandler (c *gin.Context) {
+func (h *Handler) UserOrdersHandler(c *gin.Context) {
 	user, err := GetUserId(c)
 	if err != nil {
 		newErrorMessage(c, http.StatusUnauthorized, err.Error())
@@ -122,9 +122,22 @@ func (h *Handler) UserOrdersHandler (c *gin.Context) {
 		newErrorMessage(c, http.StatusInternalServerError, err.Error())
 		return
 	}
-	c.JSON(http.StatusOK, &getListUserOrderListResponse{
+	c.JSON(http.StatusOK, &getUserOrderListResponse{
 		Data: data,
 	})
 
+}
 
+func (h *Handler) OrderStatisticHandler(c *gin.Context) {
+	user, err := GetUserId(c)
+	if err != nil {
+		newErrorMessage(c, http.StatusUnauthorized, err.Error())
+		return
+	}
+	data, err := h.services.Order.OrdersStatistic(user)
+	if err != nil {
+		newErrorMessage(c, http.StatusInternalServerError, err.Error())
+		return
+	}
+	c.JSON(http.StatusOK, data)
 }

@@ -4,6 +4,7 @@ import (
 	"order_service/pkg/service"
 
 	"github.com/gin-gonic/gin"
+
 )
 
 type Handler struct {
@@ -36,12 +37,19 @@ func (h *Handler) InitRouter() *gin.Engine {
 			order.POST("/create_order", h.CreateOrderHandler)
 			order.GET("/order_detail/:id", h.DetailOrderHandler)
 			order.GET("/my_orders", h.UserOrdersHandler)
+			order.GET("/orders_statistic", h.OrderStatisticHandler)
+
 		}
 		employee := api.Group("/employee", h.parseAuthHeader)
 		{
 			employee.POST("/confirm_order_step1/:order_id", h.ConfirmOrderStep1Handler)
 			employee.POST("/confirm_order_step2/:order_id", h.ConfirmOrderStep2Handler)
 			employee.POST("/confirm_order_step3/:order_id", h.ConfirmOrderStep3Handler)
+		}
+		admin := api.Group("/admin", h.parseAuthHeader)
+		{
+			admin.GET("/order_list", h.AdminOrderListHandler)
+			admin.GET("/orders_statistic", h.AdminOrdersStatisticHandler)
 		}
 
 	}
